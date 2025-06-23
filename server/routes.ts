@@ -45,10 +45,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Try CoinGecko as primary source
       try {
-        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd");
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd", {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         if (response.ok) {
           const data = await response.json();
-          if (data["hive-blockchain"] && data["hive-blockchain"].usd) {
+          if (data["hive-blockchain"] && data["hive-blockchain"].usd && data["hive-blockchain"].usd > 0) {
             hivePrice = data["hive-blockchain"].usd;
             priceSource = "CoinGecko API";
           }
@@ -60,10 +67,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If CoinGecko fails, try HAF Explorer with improved parsing
       if (!hivePrice) {
         try {
-          const response = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1");
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          const response = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1", {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          
           if (response.ok) {
             const data = await response.json();
-                if (process.env.NODE_ENV === 'development') {
+            if (process.env.NODE_ENV === 'development') {
               console.log("HAF Explorer response:", JSON.stringify(data).substring(0, 500));
             }
             
@@ -71,7 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (data && data.witnesses && Array.isArray(data.witnesses) && data.witnesses.length > 0) {
               const witness = data.witnesses[0];
               
-              if (typeof witness.price_feed === 'number' && witness.price_feed > 0) {
+              if (typeof witness.price_feed === 'number' && witness.price_feed > 0 && witness.price_feed < 10) {
                 hivePrice = witness.price_feed;
                 priceSource = "HAF Explorer API";
               }
@@ -82,9 +96,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // If all APIs fail, return error instead of fallback
+      // If all APIs fail, use a reasonable fallback from recent market data
       if (!hivePrice) {
-        throw new Error("Unable to fetch HIVE price from any data source");
+        hivePrice = 0.198; // Last known stable price
+        priceSource = "Fallback - API Error";
+        console.warn("All price APIs failed, using fallback price");
       }
       
       res.json({
@@ -187,20 +203,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get current HIVE price from external API to avoid circular dependency
       let currentPrice = 0.198; // Conservative fallback
       try {
-        const priceResponse = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd");
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const priceResponse = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd", {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         if (priceResponse.ok) {
           const priceData = await priceResponse.json();
-          if (priceData["hive-blockchain"]?.usd) {
+          if (priceData["hive-blockchain"]?.usd && priceData["hive-blockchain"].usd > 0) {
             currentPrice = priceData["hive-blockchain"].usd;
           }
         }
       } catch (error) {
-        // Use HAF Explorer as backup
+        // Use HAF Explorer as backup with validation
         try {
-          const hafResponse = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1");
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+          
+          const hafResponse = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1", {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          
           if (hafResponse.ok) {
             const hafData = await hafResponse.json();
-            if (hafData?.witnesses?.[0]?.price_feed) {
+            if (hafData?.witnesses?.[0]?.price_feed && 
+                typeof hafData.witnesses[0].price_feed === 'number' && 
+                hafData.witnesses[0].price_feed > 0 && 
+                hafData.witnesses[0].price_feed < 10) {
               currentPrice = hafData.witnesses[0].price_feed;
             }
           }

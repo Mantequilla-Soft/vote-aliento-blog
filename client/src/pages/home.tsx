@@ -75,7 +75,7 @@ export default function Home() {
     }
     
     calculateMutation.mutate(hp);
-  }, [calculateMutation, queryClient]);
+  }, [queryClient, calculateMutation]);
 
   useEffect(() => {
     const hp = parseFloat(hivePower);
