@@ -135,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
-          method: "database_api.get_reward_fund",
+          method: "condenser_api.get_reward_fund",
           params: ["post"],
           id: 1
         })
@@ -146,6 +146,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const rewardFundData = await rewardFundResponse.json();
+      console.log("Reward fund API response:", JSON.stringify(rewardFundData));
+      
       if (!rewardFundData.result) {
         throw new Error("Invalid reward fund API response");
       }
