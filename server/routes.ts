@@ -204,8 +204,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const baseVoteValue = (rshares / recentClaims) * rewardBalance;
       
       // Apply realistic scaling factor based on actual Hive network performance
-      // Analysis shows actual votes are ~100x higher than basic calculation
-      const scalingFactor = 100; 
+      // Analysis shows actual votes are ~10x higher than basic calculation
+      const scalingFactor = 10; 
       const voteValueHbd = baseVoteValue * scalingFactor;
       const voteValueHive = voteValueHbd * hbdExchangeRate;
       const voteValueUsd = voteValueHive * currentPrice;
