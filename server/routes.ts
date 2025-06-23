@@ -3,44 +3,94 @@ import { createServer, type Server } from "http";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get current HIVE price from HAF Explorer API
+  // Get current HIVE price from multiple reliable sources
   app.get("/api/hive-price", async (req, res) => {
     try {
-      // Try to fetch from HAF Explorer API first
-      let hivePrice = 0.234; // Fallback price
+      let hivePrice = null;
+      let priceSource = "Unknown";
       
+      // Try multiple data sources in order of preference
+      const priceSources = [
+        {
+          name: "Hive-Engine API",
+          url: "https://api.hive-engine.com/rpc/contracts",
+          method: "POST",
+          body: {
+            jsonrpc: "2.0",
+            method: "find",
+            params: {
+              contract: "market",
+              table: "metrics",
+              query: {}
+            },
+            id: 1
+          }
+        },
+        {
+          name: "HiveSQL API",
+          url: "https://api.hivesql.io/v1/global_props",
+          method: "GET"
+        },
+        {
+          name: "Hive Blog API",
+          url: "https://api.hive.blog",
+          method: "POST",
+          body: {
+            jsonrpc: "2.0",
+            method: "database_api.get_dynamic_global_properties",
+            id: 1
+          }
+        }
+      ];
+
+      // Try CoinGecko as primary source
       try {
-        // Fetch witness data to get price feeds
-        const response = await fetch("https://api.syncad.com/hafbe-api/witnesses");
-        
+        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd");
         if (response.ok) {
           const data = await response.json();
-          
-          // Extract price from witness data if available
-          if (data && Array.isArray(data) && data.length > 0) {
-            // Look for price feed data in witness information
-            const witnessWithPrice = data.find((witness: any) => 
-              witness.price_feed && witness.price_feed.base && witness.price_feed.quote
-            );
+          if (data["hive-blockchain"] && data["hive-blockchain"].usd) {
+            hivePrice = data["hive-blockchain"].usd;
+            priceSource = "CoinGecko API";
+          }
+        }
+      } catch (error) {
+        console.warn("CoinGecko API failed:", error);
+      }
+
+      // If CoinGecko fails, try HAF Explorer with improved parsing
+      if (!hivePrice) {
+        try {
+          const response = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1");
+          if (response.ok) {
+            const data = await response.json();
+            console.log("HAF Explorer response:", JSON.stringify(data).substring(0, 500));
             
-            if (witnessWithPrice) {
-              const base = parseFloat(witnessWithPrice.price_feed.base.split(' ')[0]);
-              const quote = parseFloat(witnessWithPrice.price_feed.quote.split(' ')[0]);
+            // Parse HAF Explorer API response - it returns witnesses array with price_feed numbers
+            if (data && data.witnesses && Array.isArray(data.witnesses) && data.witnesses.length > 0) {
+              const witness = data.witnesses[0];
               
-              if (base > 0 && quote > 0) {
-                hivePrice = base / quote;
+              if (typeof witness.price_feed === 'number' && witness.price_feed > 0) {
+                hivePrice = witness.price_feed;
+                priceSource = "HAF Explorer API";
               }
             }
           }
+        } catch (error) {
+          console.warn("HAF Explorer API failed:", error);
         }
-      } catch (apiError) {
-        console.warn("Failed to fetch from HAF Explorer, using fallback price:", apiError);
+      }
+
+      // Final fallback to a reasonable estimate if all APIs fail
+      if (!hivePrice) {
+        hivePrice = 0.25; // Conservative estimate
+        priceSource = "Fallback estimate";
+        console.warn("All price APIs failed, using fallback price");
       }
       
       res.json({
-        price: hivePrice,
+        price: parseFloat(hivePrice.toFixed(6)),
         timestamp: new Date().toISOString(),
-        source: "HAF Explorer API"
+        source: priceSource
       });
     } catch (error) {
       console.error("Error fetching HIVE price:", error);
