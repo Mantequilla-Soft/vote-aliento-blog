@@ -63,7 +63,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const response = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1");
           if (response.ok) {
             const data = await response.json();
-            console.log("HAF Explorer response:", JSON.stringify(data).substring(0, 500));
+            if (process.env.NODE_ENV === 'development') {
+          console.log("HAF Explorer response:", JSON.stringify(data).substring(0, 500));
+        }
             
             // Parse HAF Explorer API response - it returns witnesses array with price_feed numbers
             if (data && data.witnesses && Array.isArray(data.witnesses) && data.witnesses.length > 0) {
@@ -210,12 +212,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const voteValueHive = calculateVoteValue(rshares, rewardBalance, recentClaims);
       const voteValueUsd = hiveToUsd(voteValueHive, hiveToHbdRate);
 
-      // Get current HIVE price for reference
-      const priceResponse = await fetch(`${req.protocol}://${req.get('host')}/api/hive-price`);
-      let currentPrice = 0.2; // Fallback
-      if (priceResponse.ok) {
-        const priceData = await priceResponse.json();
-        currentPrice = priceData.price;
+      // Get current HIVE price for reference (avoid self-referencing call)
+      let currentPrice = 0.198; // Use HAF Explorer price as default
+      try {
+        const hafResponse = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1");
+        if (hafResponse.ok) {
+          const hafData = await hafResponse.json();
+          if (hafData?.witnesses?.[0]?.price_feed) {
+            currentPrice = hafData.witnesses[0].price_feed;
+          }
+        }
+      } catch (error) {
+        console.warn("Could not fetch price for calculation:", error);
       }
 
       // Log calculation details for debugging (reduced verbosity)
