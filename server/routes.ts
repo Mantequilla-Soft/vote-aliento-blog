@@ -117,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Calculate vote value using authentic blockchain data
+  // Calculate vote value using official Hive developers documentation formula
   app.post("/api/calculate-vote", async (req, res) => {
     try {
       const { hivePower, votingPower = 10000, voteWeight = 10000 } = req.body;
@@ -129,78 +129,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Fetch dynamic blockchain values from Hive API
-      const blockchainResponse = await fetch("https://api.hive.blog", {
+      // Step 1: Get Reward Fund - official formula requires reward_balance and recent_claims
+      const rewardFundResponse = await fetch("https://api.hive.blog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
-          method: "database_api.get_dynamic_global_properties",
+          method: "database_api.get_reward_fund",
+          params: ["post"],
           id: 1
         })
       });
 
-      if (!blockchainResponse.ok) {
-        throw new Error("Failed to fetch blockchain data");
+      if (!rewardFundResponse.ok) {
+        throw new Error("Failed to fetch reward fund data");
       }
 
-      const blockchainData = await blockchainResponse.json();
-      
-      if (!blockchainData.result) {
-        throw new Error("Invalid blockchain API response");
+      const rewardFundData = await rewardFundResponse.json();
+      if (!rewardFundData.result) {
+        throw new Error("Invalid reward fund API response");
       }
 
-      const props = blockchainData.result;
+      const rewardFund = rewardFundData.result;
       
-      // Extract values from blockchain data - handle new API format with amount/precision
-      const totalVestingFundHive = parseFloat(props.total_vesting_fund_hive.amount) / Math.pow(10, props.total_vesting_fund_hive.precision);
-      const totalVestingShares = parseFloat(props.total_vesting_shares.amount) / Math.pow(10, props.total_vesting_shares.precision);
-      
-      // Use actual current Hive blockchain economics
-      const virtualSupply = parseFloat(props.virtual_supply.amount) / Math.pow(10, props.virtual_supply.precision);
-      
-      // Real-world Hive vote calculation based on empirical data
-      // Approximately 65% of inflation goes to content rewards
-      const contentRewardPercent = 0.65;
-      const annualInflationRate = 0.085; // 8.5% annual inflation
-      const dailyRewardPool = (virtualSupply * annualInflationRate * contentRewardPercent) / 365;
-      
-      // Use actual reward pool values that match current Hive state
-      const rewardBalance = dailyRewardPool; // Daily reward pool in HIVE
-      const recentClaims = totalVestingShares; // Total vesting shares as claims base
+      // Parse reward_balance and recent_claims
+      const rewardBalance = parseFloat(rewardFund.reward_balance.split(' ')[0]);
+      const recentClaims = parseFloat(rewardFund.recent_claims);
 
-      // Get witness price feed for HIVE/HBD conversion
-      const witnessResponse = await fetch("https://api.hive.blog", {
+      // Step 2: Get Feed History for HBD median price
+      const feedHistoryResponse = await fetch("https://api.hive.blog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
           method: "database_api.get_feed_history",
-          id: 1
+          id: 2
         })
       });
 
-      let hiveToHbdRate = 1.0; // Default fallback
-      if (witnessResponse.ok) {
-        const witnessData = await witnessResponse.json();
-        if (witnessData.result && witnessData.result.current_median_history) {
-          const baseFeed = witnessData.result.current_median_history.base;
-          const quoteFeed = witnessData.result.current_median_history.quote;
+      let hbdMedianPrice = 1.0; // Default fallback
+      if (feedHistoryResponse.ok) {
+        const feedData = await feedHistoryResponse.json();
+        if (feedData.result && feedData.result.current_median_history) {
+          const baseFeed = feedData.result.current_median_history.base;
+          const quoteFeed = feedData.result.current_median_history.quote;
           
-          // Handle both old string format and new object format
-          let base, quote;
-          if (typeof baseFeed === 'string') {
-            base = parseFloat(baseFeed.split(' ')[0]);
-            quote = parseFloat(quoteFeed.split(' ')[0]);
-          } else {
-            base = parseFloat(baseFeed.amount) / Math.pow(10, baseFeed.precision);
-            quote = parseFloat(quoteFeed.amount) / Math.pow(10, quoteFeed.precision);
-          }
-          hiveToHbdRate = base / quote; // HBD per HIVE
+          // Parse base and quote values
+          const base = parseFloat(baseFeed.split(' ')[0]);
+          const quote = parseFloat(quoteFeed.split(' ')[0]);
+          hbdMedianPrice = base / quote; // HBD per HIVE
         }
       }
 
-      // Get current HIVE price from external API to avoid circular dependency
+      // Step 3: Get Dynamic Global Properties for total vesting data
+      const globalPropsResponse = await fetch("https://api.hive.blog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "database_api.get_dynamic_global_properties",
+          id: 3
+        })
+      });
+
+      if (!globalPropsResponse.ok) {
+        throw new Error("Failed to fetch global properties");
+      }
+
+      const globalPropsData = await globalPropsResponse.json();
+      if (!globalPropsData.result) {
+        throw new Error("Invalid global properties API response");
+      }
+
+      const props = globalPropsData.result;
+      
+      // Extract vesting fund values - handle both old string and new object formats
+      let totalVestingFundHive, totalVestingShares;
+      
+      if (typeof props.total_vesting_fund_hive === 'string') {
+        totalVestingFundHive = parseFloat(props.total_vesting_fund_hive.split(' ')[0]);
+        totalVestingShares = parseFloat(props.total_vesting_shares.split(' ')[0]);
+      } else {
+        totalVestingFundHive = parseFloat(props.total_vesting_fund_hive.amount) / Math.pow(10, props.total_vesting_fund_hive.precision);
+        totalVestingShares = parseFloat(props.total_vesting_shares.amount) / Math.pow(10, props.total_vesting_shares.precision);
+      }
+
+      // Get current HIVE price for USD conversion
       let currentPrice = 0.198; // Conservative fallback
       try {
         const controller = new AbortController();
@@ -218,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       } catch (error) {
-        // Use HAF Explorer as backup with validation
+        // Use HAF Explorer as backup
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 3000);
@@ -242,27 +256,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Authentic Hive blockchain vote calculation using rshares formula
-      // Formula: rshares = (vesting_shares × voting_power × vote_weight) / 10,000 / 10,000
+      // Step 4: Official Hive Developers Formula
+      // total_vests = vesting_shares + received_vesting_shares - delegated_vesting_shares
+      // For HP input, we convert HP to vests: total_vests = (hivePower * totalVestingShares) / totalVestingFundHive
+      const totalVests = (hivePower * totalVestingShares) / totalVestingFundHive;
       
-      // Convert Hive Power to vesting shares
-      const vestingShares = (hivePower * totalVestingShares) / totalVestingFundHive;
+      // final_vest = total_vests * 1e6
+      const finalVest = totalVests * 1e6;
       
-      // Calculate rshares using the authentic Hive formula
-      const rshares = (vestingShares * votingPower * voteWeight) / 10000 / 10000;
+      // power = (voting_power * weight / 10000) / 50
+      const power = (votingPower * voteWeight / 10000) / 50;
       
-      // Convert rshares to vote value using current reward pool
-      // Vote value = (rshares / recent_claims) × reward_balance
-      const voteValueHive = (rshares / recentClaims) * rewardBalance;
+      // rshares = power * final_vest / 10000
+      const rshares = power * finalVest / 10000;
+      
+      // estimate = rshares / recent_claims * reward_balance * hbd_median_price
+      const voteValueHive = (rshares / recentClaims) * rewardBalance * hbdMedianPrice;
       const voteValueUsd = voteValueHive * currentPrice;
 
       // Log calculation details for debugging
       if (process.env.NODE_ENV === 'development' && hivePower > 1000) {
-        console.log(`Vote calculation for ${hivePower} HP:
-        Vesting shares: ${vestingShares.toFixed(6)}
+        console.log(`Official Hive formula calculation for ${hivePower} HP:
+        Total vests: ${totalVests.toFixed(6)}
+        Final vest: ${finalVest.toFixed(0)}
+        Power: ${power.toFixed(6)}
         RShares: ${rshares.toFixed(0)}
         Vote value (HIVE): ${voteValueHive.toFixed(6)}
         Vote value (USD): ${voteValueUsd.toFixed(6)}
+        HBD median price: ${hbdMedianPrice.toFixed(3)}
         Current HIVE price: $${currentPrice}`);
       }
 
@@ -275,10 +296,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         blockchainData: {
           totalVestingFundHive: parseFloat(totalVestingFundHive.toFixed(3)),
           totalVestingShares: parseFloat(totalVestingShares.toFixed(0)),
-          dailyRewardPool: parseFloat(rewardBalance.toFixed(2)),
-          virtualSupply: parseFloat(virtualSupply.toFixed(0)),
-          vestingShares: parseFloat(vestingShares.toFixed(6)),
-          rshares: parseFloat(rshares.toFixed(0))
+          rewardBalance: parseFloat(rewardBalance.toFixed(2)),
+          recentClaims: parseFloat(recentClaims.toFixed(0)),
+          totalVests: parseFloat(totalVests.toFixed(6)),
+          finalVest: parseFloat(finalVest.toFixed(0)),
+          power: parseFloat(power.toFixed(6)),
+          rshares: parseFloat(rshares.toFixed(0)),
+          hbdMedianPrice: parseFloat(hbdMedianPrice.toFixed(3))
         }
       });
     } catch (error) {
