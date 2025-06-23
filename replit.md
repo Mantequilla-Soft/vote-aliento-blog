@@ -82,8 +82,11 @@ The application follows a monorepo structure with clear separation between clien
 2. Client assets served from `/dist/public`
 3. Server runs from bundled `/dist/index.js`
 
-## Changelog
-- June 23, 2025. Initial setup
+## Recent Changes
+- June 23, 2025: Built complete Hive vote value calculator with real-time price feeds
+- Implemented accurate vote calculation using actual blockchain parameters
+- Integrated HAF Explorer API for authentic witness price feeds ($0.198 current price)
+- Created responsive Hive-branded interface with example values and detailed explanations
 
 ## User Preferences
 
