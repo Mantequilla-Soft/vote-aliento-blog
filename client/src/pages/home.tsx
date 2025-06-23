@@ -81,7 +81,7 @@ export default function Home() {
     } else {
       setCalculation(null);
     }
-  }, [hivePower]);
+  }, [hivePower, calculateMutation]);
 
   const handleExampleClick = (hp: number) => {
     setHivePower(hp.toString());
@@ -214,7 +214,7 @@ export default function Home() {
                         <p className="text-red-100 text-sm font-medium">Vote Value (HIVE)</p>
                         <div className="text-2xl font-bold">
                           {calculateMutation.isPending ? (
-                            <Skeleton className="h-8 w-20 bg-red-400" />
+                            <div className="h-8 w-20 bg-red-400 rounded animate-pulse" />
                           ) : calculation ? (
                             calculation.voteValueHive.toFixed(3)
                           ) : (
@@ -237,7 +237,7 @@ export default function Home() {
                         <p className="text-green-100 text-sm font-medium">Vote Value (USD)</p>
                         <div className="text-2xl font-bold">
                           {calculateMutation.isPending ? (
-                            <Skeleton className="h-8 w-20 bg-green-400" />
+                            <div className="h-8 w-20 bg-green-400 rounded animate-pulse" />
                           ) : calculation ? (
                             `$${calculation.voteValueUsd.toFixed(3)}`
                           ) : (
