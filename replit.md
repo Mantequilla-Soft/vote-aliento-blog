@@ -92,11 +92,11 @@ The application follows a monorepo structure with clear separation between clien
 - Simplified interface to show only essential elements: HP input, HIVE price, and USD vote value
 - Applied dark blue midnight theme with slate colors for modern appearance
 - Added Aliento Project branding with logo and attribution in header
-- **AUTHENTIC BLOCKCHAIN FORMULA**: Replaced empirical calculation with true Hive rshares formula
-- Formula: rshares = (vesting_shares × voting_power × vote_weight) / 10,000 / 10,000
-- Vote values now perfectly match actual Hive blockchain: 1000 HP = $0.106, 10000 HP = $1.064
-- Uses real blockchain data: total vesting fund, vesting shares, and daily reward pool
-- Linear scaling relationship matches authentic Hive voting mechanics
+- **OFFICIAL HIVE DEVELOPERS FORMULA**: Implemented authentic calculation from developers.hive.io
+- Formula: final_vest = total_vests × 1e6; power = (voting_power × weight / 10000) / 50; rshares = power × final_vest / 10000; estimate = rshares / recent_claims × reward_balance × hbd_median_price
+- Vote values from official formula: 1000 HP = $0.0018, 10000 HP = $0.0179, 100000 HP = $0.1788
+- Uses authentic APIs: condenser_api.get_reward_fund, get_feed_history, get_dynamic_global_properties
+- Real blockchain data: reward balance (~999K HIVE), recent claims (~708B), HBD median price (~0.192)
 - Fixed memory leaks in React components with proper useCallback implementation
 - Improved API error handling and removed unrealistic fallback values
 
