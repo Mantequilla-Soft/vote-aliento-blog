@@ -9,39 +9,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let hivePrice = null;
       let priceSource = "Unknown";
       
-      // Try multiple data sources in order of preference
-      const priceSources = [
-        {
-          name: "Hive-Engine API",
-          url: "https://api.hive-engine.com/rpc/contracts",
-          method: "POST",
-          body: {
-            jsonrpc: "2.0",
-            method: "find",
-            params: {
-              contract: "market",
-              table: "metrics",
-              query: {}
-            },
-            id: 1
-          }
-        },
-        {
-          name: "HiveSQL API",
-          url: "https://api.hivesql.io/v1/global_props",
-          method: "GET"
-        },
-        {
-          name: "Hive Blog API",
-          url: "https://api.hive.blog",
-          method: "POST",
-          body: {
-            jsonrpc: "2.0",
-            method: "database_api.get_dynamic_global_properties",
-            id: 1
-          }
-        }
-      ];
+
 
       // Try CoinGecko as primary source
       try {
@@ -129,9 +97,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Fetch all required data in parallel for efficiency
+      // Fetch all required data in parallel for efficiency with timeout protection
+      const fetchWithTimeout = (url: string, options: any, timeout = 8000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        return fetch(url, { ...options, signal: controller.signal })
+          .finally(() => clearTimeout(timeoutId));
+      };
+
       const [rewardFundResponse, feedHistoryResponse, globalPropsResponse] = await Promise.all([
-        fetch("https://api.hive.blog", {
+        fetchWithTimeout("https://api.hive.blog", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -141,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: 1
           })
         }),
-        fetch("https://api.hive.blog", {
+        fetchWithTimeout("https://api.hive.blog", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -150,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: 2
           })
         }),
-        fetch("https://api.hive.blog", {
+        fetchWithTimeout("https://api.hive.blog", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -159,13 +135,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: 3
           })
         })
-      ]);
+      ]).catch(error => {
+        throw new Error(`Blockchain API timeout or connection failed: ${error.message}`);
+      });
 
-      // Parse reward fund data
+      // Parse reward fund data with validation
+      if (!rewardFundResponse.ok) {
+        throw new Error(`Reward fund API failed: ${rewardFundResponse.status}`);
+      }
       const rewardFundData = await rewardFundResponse.json();
+      
+      if (!rewardFundData.result || !rewardFundData.result.reward_balance) {
+        throw new Error("Invalid reward fund response format");
+      }
+      
       const rewardFund = rewardFundData.result;
       const rewardBalance = parseFloat(rewardFund.reward_balance.split(' ')[0]);
       const recentClaims = parseFloat(rewardFund.recent_claims);
+      
+      if (isNaN(rewardBalance) || isNaN(recentClaims) || rewardBalance <= 0 || recentClaims <= 0) {
+        throw new Error("Invalid reward fund data received");
+      }
 
       // Parse feed history data for HBD median price
       let hbdMedianPrice = 0.192; // Current typical value
@@ -180,8 +170,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Using fallback HBD median price:", hbdMedianPrice);
       }
 
-      // Parse global properties for vesting data
+      // Parse global properties for vesting data with validation
+      if (!globalPropsResponse.ok) {
+        throw new Error(`Global properties API failed: ${globalPropsResponse.status}`);
+      }
       const globalPropsData = await globalPropsResponse.json();
+      
+      if (!globalPropsData.result) {
+        throw new Error("Invalid global properties response format");
+      }
+      
       const props = globalPropsData.result;
       
       let totalVestingFundHive, totalVestingShares;
@@ -191,6 +189,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         totalVestingFundHive = parseFloat(props.total_vesting_fund_hive.amount) / Math.pow(10, props.total_vesting_fund_hive.precision);
         totalVestingShares = parseFloat(props.total_vesting_shares.amount) / Math.pow(10, props.total_vesting_shares.precision);
+      }
+      
+      if (isNaN(totalVestingFundHive) || isNaN(totalVestingShares) || totalVestingFundHive <= 0 || totalVestingShares <= 0) {
+        throw new Error("Invalid vesting fund data received");
       }
 
       // Get current HIVE price for USD conversion

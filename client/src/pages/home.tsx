@@ -36,18 +36,32 @@ export default function Home() {
   // Calculate vote value mutation with query cache integration
   const calculateMutation = useMutation({
     mutationFn: async (hp: number) => {
-      const response = await fetch("/api/calculate-vote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ hivePower: hp }),
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to calculate vote value");
+      try {
+        const response = await fetch("/api/calculate-vote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ hivePower: hp }),
+          signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ message: "Network error" }));
+          throw new Error(error.message || `HTTP ${response.status}: Failed to calculate vote value`);
+        }
+        
+        return response.json() as Promise<VoteCalculationResult>;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error("Calculation request timed out. Please try again.");
+        }
+        throw error;
       }
-      
-      return response.json() as Promise<VoteCalculationResult>;
     },
     onSuccess: (data) => {
       setCalculation(data);
@@ -55,11 +69,14 @@ export default function Home() {
       queryClient.setQueryData(["/api/calculate-vote", data.hivePower], data);
     },
     onError: (error) => {
+      console.error("Vote calculation error:", error);
       toast({
         title: "Calculation Failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
+      // Clear calculation on error
+      setCalculation(null);
     },
   });
 
@@ -75,7 +92,7 @@ export default function Home() {
     }
     
     calculateMutation.mutate(hp);
-  }, [queryClient, calculateMutation.mutate]);
+  }, [queryClient, calculateMutation]);
 
   useEffect(() => {
     const hp = parseFloat(hivePower);
