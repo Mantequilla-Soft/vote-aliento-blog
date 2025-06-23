@@ -78,17 +78,17 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-hive-red to-red-600 text-white text-center">
+        <Card className="shadow-2xl bg-slate-800 border-slate-700">
+          <CardHeader className="bg-gradient-to-r from-blue-900 to-blue-800 text-white text-center">
             <h1 className="text-xl font-semibold">Hive Vote Calculator</h1>
           </CardHeader>
 
           <CardContent className="p-6 space-y-6">
             {/* Hive Power Input */}
             <div>
-              <Label htmlFor="hivePower" className="text-sm font-medium text-gray-700 mb-2 block">
+              <Label htmlFor="hivePower" className="text-sm font-medium text-slate-300 mb-2 block">
                 Hive Power
               </Label>
               <div className="relative">
@@ -100,25 +100,25 @@ export default function Home() {
                   onChange={(e) => setHivePower(e.target.value)}
                   min="0"
                   step="0.001"
-                  className="text-lg font-medium pr-12"
+                  className="text-lg font-medium pr-12 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <span className="text-gray-500 font-medium">HP</span>
+                  <span className="text-slate-400 font-medium">HP</span>
                 </div>
               </div>
             </div>
 
             {/* Current HIVE Price */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-slate-700 border border-slate-600 rounded-lg p-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Current HIVE Price</span>
+                <span className="text-sm font-medium text-slate-300">Current HIVE Price</span>
                 <div>
                   {priceLoading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-hive-red border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
                   ) : priceError ? (
-                    <span className="text-red-500 text-sm">Error</span>
+                    <span className="text-red-400 text-sm">Error</span>
                   ) : priceData ? (
-                    <span className="text-lg font-semibold text-green-600">
+                    <span className="text-lg font-semibold text-blue-400">
                       ${priceData.price.toFixed(3)}
                     </span>
                   ) : null}
@@ -127,11 +127,11 @@ export default function Home() {
             </div>
 
             {/* Vote Value in USD */}
-            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-6 text-center">
-              <p className="text-green-100 text-sm font-medium mb-2">Vote Value</p>
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg p-6 text-center shadow-lg">
+              <p className="text-blue-100 text-sm font-medium mb-2">Vote Value</p>
               <div className="text-3xl font-bold">
                 {calculateMutation.isPending ? (
-                  <div className="h-10 w-24 bg-green-400 rounded animate-pulse mx-auto" />
+                  <div className="h-10 w-24 bg-blue-500 rounded animate-pulse mx-auto" />
                 ) : calculation ? (
                   `$${calculation.voteValueUsd.toFixed(3)}`
                 ) : (
