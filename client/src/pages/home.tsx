@@ -107,9 +107,19 @@ export default function Home() {
                   e.currentTarget.style.display = 'none';
                 }}
               />
-              <h1 className="text-xl font-semibold">Hive Vote Calculator</h1>
+              <h1 className="text-xl font-semibold">Hive Upvote Calculator</h1>
             </div>
-            <p className="text-blue-100 text-xs">Built by Aliento Project</p>
+            <p className="text-blue-100 text-xs">
+              Built by{' '}
+              <a 
+                href="https://aliento.blog" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-200 hover:text-white underline transition-colors"
+              >
+                Aliento Project
+              </a>
+            </p>
           </CardHeader>
 
           <CardContent className="p-6 space-y-6">

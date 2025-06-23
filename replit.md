@@ -1,8 +1,8 @@
-# Hive Voting Calculator
+# Hive Upvote Calculator
 
 ## Overview
 
-This is a full-stack web application that calculates vote values for Hive blockchain accounts based on their Hive Power. The app fetches real-time HIVE price data and provides instant calculations for voting power estimation. Built with a modern tech stack focusing on performance and user experience.
+This is a full-stack web application that calculates upvote values for Hive blockchain accounts based on their Hive Power. The app fetches real-time HIVE price data and provides instant calculations for voting power estimation. Built with a modern tech stack focusing on performance and user experience. Created by the Aliento Project (aliento.blog).
 
 ## System Architecture
 
@@ -102,4 +102,4 @@ The application follows a monorepo structure with clear separation between clien
 
 Preferred communication style: Simple, everyday language.
 UI Design: Dark blue midnight theme with minimal, clean interface showing only essential elements.
-Branding: Include Aliento Project logo and attribution in the application header.
+Branding: Include Aliento Project logo and attribution with link to aliento.blog in the application header.
