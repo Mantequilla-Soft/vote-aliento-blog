@@ -101,10 +101,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Calculate vote value
+  // Calculate vote value using authentic blockchain data
   app.post("/api/calculate-vote", async (req, res) => {
     try {
-      const { hivePower } = req.body;
+      const { hivePower, votingPower = 10000, voteWeight = 10000 } = req.body;
       
       if (typeof hivePower !== 'number' || hivePower < 0) {
         return res.status(400).json({ 
@@ -113,49 +113,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get current HIVE price
-      const priceResponse = await fetch(`${req.protocol}://${req.get('host')}/api/hive-price`);
-      
-      if (!priceResponse.ok) {
-        throw new Error("Failed to fetch current HIVE price");
-      }
-      
-      const priceData = await priceResponse.json();
-      const currentPrice = priceData.price;
+      // Fetch dynamic blockchain values from Hive API
+      const blockchainResponse = await fetch("https://api.hive.blog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "database_api.get_dynamic_global_properties",
+          id: 1
+        })
+      });
 
-      // More accurate vote value calculation based on Hive blockchain mechanics
-      // This calculation approximates the real Hive vote value formula
-      
-      // Accurate Hive vote value calculation
-      // Based on observed Hive blockchain behavior and economics
-      
-      // Key insight: vote values follow a power law, not linear scaling
-      // Typical ranges: 100 HP ≈ $0.01-0.02, 1000 HP ≈ $0.10-0.20, 10000 HP ≈ $1-2
-      
-      let voteValueInHive;
-      
-      if (hivePower <= 0) {
-        // No voting power means no vote value
-        voteValueInHive = 0;
-      } else if (hivePower < 15) {
-        // Very small accounts have minimal vote value
-        voteValueInHive = 0.0001 * hivePower;
-      } else {
-        // Formula based on real Hive vote value observations
-        // Vote value grows with square root of Hive Power for realistic scaling
-        const baseMultiplier = 0.0015; // Calibrated to match real Hive values
-        const powerFactor = Math.sqrt(hivePower); // Square root scaling
-        voteValueInHive = baseMultiplier * powerFactor;
+      if (!blockchainResponse.ok) {
+        throw new Error("Failed to fetch blockchain data");
       }
+
+      const blockchainData = await blockchainResponse.json();
       
-      const voteValueInUsd = voteValueInHive * currentPrice;
+      if (!blockchainData.result) {
+        throw new Error("Invalid blockchain API response");
+      }
+
+      const props = blockchainData.result;
+      
+      // Extract values from blockchain data
+      const totalVestingFundHive = parseFloat(props.total_vesting_fund_hive.split(' ')[0]);
+      const totalVestingShares = parseFloat(props.total_vesting_shares.split(' ')[0]);
+      const rewardBalance = parseFloat(props.total_reward_fund_hive.split(' ')[0]);
+      const recentClaims = parseFloat(props.recent_claims);
+
+      // Get witness price feed for HIVE/HBD conversion
+      const witnessResponse = await fetch("https://api.hive.blog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "database_api.get_feed_history",
+          id: 1
+        })
+      });
+
+      let hiveToHbdRate = 1.0; // Default fallback
+      if (witnessResponse.ok) {
+        const witnessData = await witnessResponse.json();
+        if (witnessData.result && witnessData.result.current_median_history) {
+          const base = parseFloat(witnessData.result.current_median_history.base.split(' ')[0]);
+          const quote = parseFloat(witnessData.result.current_median_history.quote.split(' ')[0]);
+          hiveToHbdRate = base / quote; // HBD per HIVE
+        }
+      }
+
+      // Helper functions for accurate vote calculation
+      const hpToVests = (hp: number, totalVestingFundHive: number, totalVestingShares: number): number => {
+        return hp * (totalVestingShares / totalVestingFundHive);
+      };
+
+      const calculateRshares = (vests: number, votingPower: number, voteWeight: number): number => {
+        return (vests * votingPower * voteWeight) / (10000 * 10000);
+      };
+
+      const calculateVoteValue = (rshares: number, rewardBalance: number, recentClaims: number): number => {
+        return (rshares / recentClaims) * rewardBalance;
+      };
+
+      const hiveToUsd = (hiveAmount: number, hiveToHbdRate: number): number => {
+        // Convert HIVE to HBD first, then HBD is approximately $1 USD
+        return hiveAmount * hiveToHbdRate;
+      };
+
+      // Perform the calculation
+      const vests = hpToVests(hivePower, totalVestingFundHive, totalVestingShares);
+      const rshares = calculateRshares(vests, votingPower, voteWeight);
+      const voteValueHive = calculateVoteValue(rshares, rewardBalance, recentClaims);
+      const voteValueUsd = hiveToUsd(voteValueHive, hiveToHbdRate);
+
+      // Get current HIVE price for reference
+      const priceResponse = await fetch(`${req.protocol}://${req.get('host')}/api/hive-price`);
+      let currentPrice = 0.2; // Fallback
+      if (priceResponse.ok) {
+        const priceData = await priceResponse.json();
+        currentPrice = priceData.price;
+      }
 
       res.json({
         hivePower,
-        voteValueHive: parseFloat(voteValueInHive.toFixed(6)),
-        voteValueUsd: parseFloat(voteValueInUsd.toFixed(6)),
+        voteValueHive: parseFloat(voteValueHive.toFixed(6)),
+        voteValueUsd: parseFloat(voteValueUsd.toFixed(6)),
         hivePrice: currentPrice,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        blockchainData: {
+          totalVestingFundHive,
+          totalVestingShares,
+          rewardBalance,
+          recentClaims,
+          hiveToHbdRate,
+          vests: parseFloat(vests.toFixed(6)),
+          rshares: parseFloat(rshares.toFixed(0))
+        }
       });
     } catch (error) {
       console.error("Error calculating vote value:", error);
