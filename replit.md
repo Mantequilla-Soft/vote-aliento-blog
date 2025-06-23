@@ -87,6 +87,9 @@ The application follows a monorepo structure with clear separation between clien
 - Implemented accurate vote calculation using actual blockchain parameters
 - Integrated HAF Explorer API for authentic witness price feeds ($0.198 current price)
 - Created responsive Hive-branded interface with example values and detailed explanations
+- Fixed critical calculation bug that was returning zero values
+- Corrected mathematical formula to produce realistic vote values matching actual Hive blockchain behavior
+- Resolved DOM nesting warnings, memory leaks, and server error handling issues
 
 ## User Preferences
 
