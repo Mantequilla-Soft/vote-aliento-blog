@@ -212,12 +212,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Debug logging for development
       if (process.env.NODE_ENV === 'development') {
-        console.log(`AUTHENTIC Hive vote calculation for ${hivePower} HP:
+        console.log(`FIXED Hive vote calculation for ${hivePower} HP:
         VESTS: ${userVests.toFixed(2)}
         Vote Power: ${votePower/100}%
         Vote Weight: ${weight/100}%
-        Used Power: ${usedPower}
         RShares: ${rshares}
+        Base Vote Value: ${baseVoteValue.toFixed(8)}
+        Scaling Factor: ${scalingFactor}x
         Reward Pool: ${rewardBalance.toFixed(0)} HIVE
         Recent Claims: ${recentClaims.toExponential(2)}
         HBD Exchange Rate: ${hbdExchangeRate.toFixed(4)}
