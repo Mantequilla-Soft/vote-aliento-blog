@@ -93,6 +93,10 @@ The application follows a monorepo structure with clear separation between clien
 - Simplified interface to show only essential elements: HP input, HIVE price, and USD vote value
 - Applied dark blue midnight theme with slate colors for modern appearance
 - Added Aliento Project branding with logo and attribution in header
+- **MAJOR FIX**: Implemented empirical vote calculation formula using square root relationship
+- Vote values now realistic: 1000 HP ≈ $0.037, 5000 HP ≈ $0.084, 10000 HP ≈ $0.119
+- Fixed memory leaks in React components with proper useCallback implementation
+- Improved API error handling and removed unrealistic fallback values
 
 ## User Preferences
 
