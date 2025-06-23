@@ -33,7 +33,7 @@ export default function Home() {
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
-  // Calculate vote value mutation - memoized to prevent recreation on each render
+  // Calculate vote value mutation with query cache integration
   const calculateMutation = useMutation({
     mutationFn: async (hp: number) => {
       const response = await fetch("/api/calculate-vote", {
@@ -51,6 +51,8 @@ export default function Home() {
     },
     onSuccess: (data) => {
       setCalculation(data);
+      // Cache the calculation result with HP as key
+      queryClient.setQueryData(["/api/calculate-vote", data.hivePower], data);
     },
     onError: (error) => {
       toast({
@@ -61,12 +63,9 @@ export default function Home() {
     },
   });
 
-  // Memoized mutation function to prevent useEffect recreation
-  const performCalculation = useCallback((hp: number) => {
-    calculateMutation.mutate(hp);
-  }, [calculateMutation.mutate]);
 
-  // Calculate vote value when Hive Power changes with proper debouncing
+
+  // Calculate vote value when Hive Power changes with caching and debouncing
   useEffect(() => {
     const hp = parseFloat(hivePower);
     if (hivePower.trim() === "" || isNaN(hp) || hp <= 0) {
@@ -74,12 +73,23 @@ export default function Home() {
       return;
     }
     
+    // Check if we already have this calculation cached
+    const cachedResult = queryClient.getQueryData(["/api/calculate-vote", hp]);
+    if (cachedResult) {
+      setCalculation(cachedResult as VoteCalculationResult);
+      return;
+    }
+    
     const timeoutId = setTimeout(() => {
-      performCalculation(hp);
-    }, 500); // Increased debounce to 500ms to reduce API calls
+      // Double-check cache before making request
+      const latestCached = queryClient.getQueryData(["/api/calculate-vote", hp]);
+      if (!latestCached) {
+        calculateMutation.mutate(hp);
+      }
+    }, 1000); // Increased debounce to 1 second
     
     return () => clearTimeout(timeoutId);
-  }, [hivePower, performCalculation]); // Use memoized function
+  }, [hivePower, calculateMutation, queryClient]);
 
 
 
@@ -145,7 +155,7 @@ export default function Home() {
               <p className="text-blue-100 text-sm font-medium mb-2">Vote Value</p>
               <div className="text-3xl font-bold">
                 {calculateMutation.isPending ? (
-                  <div className="h-10 w-24 bg-blue-500 rounded animate-pulse mx-auto" />
+                  <span className="inline-block h-10 w-24 bg-blue-500 rounded animate-pulse"></span>
                 ) : calculation ? (
                   `$${calculation.voteValueUsd.toFixed(3)}`
                 ) : (

@@ -218,14 +218,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentPrice = priceData.price;
       }
 
-      // Log calculation details for debugging
-      console.log(`Vote calculation for ${hivePower} HP:
+      // Log calculation details for debugging (reduced verbosity)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Vote calculation for ${hivePower} HP:
         VESTS: ${vests.toFixed(6)}
         rshares: ${rshares.toFixed(0)}
         Vote value (HIVE): ${voteValueHive.toFixed(6)}
         Vote value (USD): ${voteValueUsd.toFixed(6)}
         Reward balance: ${rewardBalance.toFixed(0)}
         Recent claims: ${recentClaims.toFixed(0)}`);
+      }
 
       res.json({
         hivePower,
