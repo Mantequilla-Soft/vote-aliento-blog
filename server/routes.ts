@@ -63,9 +63,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const response = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1");
           if (response.ok) {
             const data = await response.json();
-            if (process.env.NODE_ENV === 'development') {
-          console.log("HAF Explorer response:", JSON.stringify(data).substring(0, 500));
-        }
+                if (process.env.NODE_ENV === 'development') {
+              console.log("HAF Explorer response:", JSON.stringify(data).substring(0, 500));
+            }
             
             // Parse HAF Explorer API response - it returns witnesses array with price_feed numbers
             if (data && data.witnesses && Array.isArray(data.witnesses) && data.witnesses.length > 0) {
@@ -82,11 +82,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Final fallback to a reasonable estimate if all APIs fail
+      // If all APIs fail, return error instead of fallback
       if (!hivePrice) {
-        hivePrice = 0.25; // Conservative estimate
-        priceSource = "Fallback estimate";
-        console.warn("All price APIs failed, using fallback price");
+        throw new Error("Unable to fetch HIVE price from any data source");
       }
       
       res.json({
@@ -146,15 +144,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rawRewardBalance = parseFloat(props.total_reward_fund_hive.amount) / Math.pow(10, props.total_reward_fund_hive.precision);
       const rawRecentClaims = parseFloat(props.total_reward_shares2 || "0");
       
-      // Use actual reward pool data if available, otherwise use conservative estimates
-      let rewardBalance, recentClaims;
-      if (rawRewardBalance > 100 && rawRecentClaims > 1000000) {
-        rewardBalance = rawRewardBalance;
-        recentClaims = rawRecentClaims;
-      } else {
-        // Conservative fallback based on actual Hive economics
-        rewardBalance = 750; // Much smaller reward pool ~750 HIVE
-        recentClaims = totalVestingShares * 50; // More realistic claims multiplier
+      // Use blockchain reward pool data with validation
+      let rewardBalance = rawRewardBalance;
+      let recentClaims = rawRecentClaims;
+      
+      // Validate reward pool data and use realistic fallbacks if needed
+      if (!rewardBalance || rewardBalance < 10) {
+        rewardBalance = 750; // Conservative estimate based on current Hive state
+      }
+      
+      if (!recentClaims || recentClaims < 1000000) {
+        recentClaims = totalVestingShares * 100; // Realistic claims multiplier
       }
 
       // Get witness price feed for HIVE/HBD conversion
@@ -188,18 +188,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Get current HIVE price for reference (avoid self-referencing call)
-      let currentPrice = 0.198; // Use HAF Explorer price as default
+      // Get current HIVE price from external API to avoid circular dependency
+      let currentPrice = 0.198; // Conservative fallback
       try {
-        const hafResponse = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1");
-        if (hafResponse.ok) {
-          const hafData = await hafResponse.json();
-          if (hafData?.witnesses?.[0]?.price_feed) {
-            currentPrice = hafData.witnesses[0].price_feed;
+        const priceResponse = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd");
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
+          if (priceData["hive-blockchain"]?.usd) {
+            currentPrice = priceData["hive-blockchain"].usd;
           }
         }
       } catch (error) {
-        console.warn("Could not fetch price for calculation:", error);
+        // Use HAF Explorer as backup
+        try {
+          const hafResponse = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1");
+          if (hafResponse.ok) {
+            const hafData = await hafResponse.json();
+            if (hafData?.witnesses?.[0]?.price_feed) {
+              currentPrice = hafData.witnesses[0].price_feed;
+            }
+          }
+        } catch (hafError) {
+          console.warn("All price sources failed for calculation, using fallback");
+        }
       }
 
       // Correct Hive vote value calculation using the actual blockchain formula
@@ -211,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const voteValueUsd = voteValueHive * hiveToHbdRate;
 
       // Log calculation details for debugging (reduced verbosity)
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === 'development' && hivePower > 1000) {
         console.log(`Vote calculation for ${hivePower} HP:
         VESTS: ${vests.toFixed(6)}
         rshares: ${rshares.toFixed(0)}

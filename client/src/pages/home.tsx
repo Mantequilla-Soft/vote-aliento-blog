@@ -66,13 +66,7 @@ export default function Home() {
 
 
   // Calculate vote value when Hive Power changes with caching and debouncing
-  useEffect(() => {
-    const hp = parseFloat(hivePower);
-    if (hivePower.trim() === "" || isNaN(hp) || hp <= 0) {
-      setCalculation(null);
-      return;
-    }
-    
+  const debouncedCalculate = useCallback((hp: number) => {
     // Check if we already have this calculation cached
     const cachedResult = queryClient.getQueryData(["/api/calculate-vote", hp]);
     if (cachedResult) {
@@ -80,16 +74,22 @@ export default function Home() {
       return;
     }
     
+    calculateMutation.mutate(hp);
+  }, [calculateMutation, queryClient]);
+
+  useEffect(() => {
+    const hp = parseFloat(hivePower);
+    if (hivePower.trim() === "" || isNaN(hp) || hp <= 0) {
+      setCalculation(null);
+      return;
+    }
+    
     const timeoutId = setTimeout(() => {
-      // Double-check cache before making request
-      const latestCached = queryClient.getQueryData(["/api/calculate-vote", hp]);
-      if (!latestCached) {
-        calculateMutation.mutate(hp);
-      }
-    }, 1000); // Increased debounce to 1 second
+      debouncedCalculate(hp);
+    }, 800);
     
     return () => clearTimeout(timeoutId);
-  }, [hivePower, calculateMutation, queryClient]);
+  }, [hivePower, debouncedCalculate]);
 
 
 
@@ -103,6 +103,9 @@ export default function Home() {
                 src="/assets/image_1750717762447.png" 
                 alt="Aliento Project Logo" 
                 className="w-8 h-8 rounded-full"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
               />
               <h1 className="text-xl font-semibold">Hive Vote Calculator</h1>
             </div>
