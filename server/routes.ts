@@ -129,85 +129,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Step 1: Get Reward Fund - official formula requires reward_balance and recent_claims
-      const rewardFundResponse = await fetch("https://api.hive.blog", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "condenser_api.get_reward_fund",
-          params: ["post"],
-          id: 1
+      // Fetch all required data in parallel for efficiency
+      const [rewardFundResponse, feedHistoryResponse, globalPropsResponse] = await Promise.all([
+        fetch("https://api.hive.blog", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "condenser_api.get_reward_fund",
+            params: ["post"],
+            id: 1
+          })
+        }),
+        fetch("https://api.hive.blog", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "condenser_api.get_feed_history",
+            id: 2
+          })
+        }),
+        fetch("https://api.hive.blog", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "condenser_api.get_dynamic_global_properties",
+            id: 3
+          })
         })
-      });
+      ]);
 
-      if (!rewardFundResponse.ok) {
-        throw new Error("Failed to fetch reward fund data");
-      }
-
+      // Parse reward fund data
       const rewardFundData = await rewardFundResponse.json();
-      console.log("Reward fund API response:", JSON.stringify(rewardFundData));
-      
-      if (!rewardFundData.result) {
-        throw new Error("Invalid reward fund API response");
-      }
-
       const rewardFund = rewardFundData.result;
-      
-      // Parse reward_balance and recent_claims
       const rewardBalance = parseFloat(rewardFund.reward_balance.split(' ')[0]);
       const recentClaims = parseFloat(rewardFund.recent_claims);
 
-      // Step 2: Get Feed History for HBD median price
-      const feedHistoryResponse = await fetch("https://api.hive.blog", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "database_api.get_feed_history",
-          id: 2
-        })
-      });
-
-      let hbdMedianPrice = 1.0; // Default fallback
-      if (feedHistoryResponse.ok) {
+      // Parse feed history data for HBD median price
+      let hbdMedianPrice = 0.192; // Current typical value
+      try {
         const feedData = await feedHistoryResponse.json();
-        if (feedData.result && feedData.result.current_median_history) {
-          const baseFeed = feedData.result.current_median_history.base;
-          const quoteFeed = feedData.result.current_median_history.quote;
-          
-          // Parse base and quote values
-          const base = parseFloat(baseFeed.split(' ')[0]);
-          const quote = parseFloat(quoteFeed.split(' ')[0]);
-          hbdMedianPrice = base / quote; // HBD per HIVE
+        if (feedData.result?.current_median_history) {
+          const base = parseFloat(feedData.result.current_median_history.base.split(' ')[0]);
+          const quote = parseFloat(feedData.result.current_median_history.quote.split(' ')[0]);
+          hbdMedianPrice = base / quote;
         }
+      } catch (error) {
+        console.log("Using fallback HBD median price:", hbdMedianPrice);
       }
 
-      // Step 3: Get Dynamic Global Properties for total vesting data
-      const globalPropsResponse = await fetch("https://api.hive.blog", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          method: "database_api.get_dynamic_global_properties",
-          id: 3
-        })
-      });
-
-      if (!globalPropsResponse.ok) {
-        throw new Error("Failed to fetch global properties");
-      }
-
+      // Parse global properties for vesting data
       const globalPropsData = await globalPropsResponse.json();
-      if (!globalPropsData.result) {
-        throw new Error("Invalid global properties API response");
-      }
-
       const props = globalPropsData.result;
       
-      // Extract vesting fund values - handle both old string and new object formats
       let totalVestingFundHive, totalVestingShares;
-      
       if (typeof props.total_vesting_fund_hive === 'string') {
         totalVestingFundHive = parseFloat(props.total_vesting_fund_hive.split(' ')[0]);
         totalVestingShares = parseFloat(props.total_vesting_shares.split(' ')[0]);
@@ -217,50 +194,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get current HIVE price for USD conversion
-      let currentPrice = 0.198; // Conservative fallback
+      let currentPrice = 0.198;
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-        
         const priceResponse = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd", {
-          signal: controller.signal
+          signal: AbortSignal.timeout(3000)
         });
-        clearTimeout(timeoutId);
-        
         if (priceResponse.ok) {
           const priceData = await priceResponse.json();
-          if (priceData["hive-blockchain"]?.usd && priceData["hive-blockchain"].usd > 0) {
+          if (priceData["hive-blockchain"]?.usd > 0) {
             currentPrice = priceData["hive-blockchain"].usd;
           }
         }
       } catch (error) {
         // Use HAF Explorer as backup
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 3000);
-          
           const hafResponse = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1", {
-            signal: controller.signal
+            signal: AbortSignal.timeout(3000)
           });
-          clearTimeout(timeoutId);
-          
           if (hafResponse.ok) {
             const hafData = await hafResponse.json();
-            if (hafData?.witnesses?.[0]?.price_feed && 
-                typeof hafData.witnesses[0].price_feed === 'number' && 
-                hafData.witnesses[0].price_feed > 0 && 
-                hafData.witnesses[0].price_feed < 10) {
+            if (hafData?.witnesses?.[0]?.price_feed > 0 && hafData.witnesses[0].price_feed < 10) {
               currentPrice = hafData.witnesses[0].price_feed;
             }
           }
         } catch (hafError) {
-          console.warn("All price sources failed for calculation, using fallback");
+          // Use fallback price
         }
       }
 
-      // Step 4: Official Hive Developers Formula
+      // Official Hive Developers Formula (https://developers.hive.io/tutorials-recipes/estimate_upvote.html)
       // total_vests = vesting_shares + received_vesting_shares - delegated_vesting_shares
-      // For HP input, we convert HP to vests: total_vests = (hivePower * totalVestingShares) / totalVestingFundHive
       const totalVests = (hivePower * totalVestingShares) / totalVestingFundHive;
       
       // final_vest = total_vests * 1e6
@@ -276,17 +239,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const voteValueHive = (rshares / recentClaims) * rewardBalance * hbdMedianPrice;
       const voteValueUsd = voteValueHive * currentPrice;
 
-      // Log calculation details for debugging
+      // Log calculation for debugging
       if (process.env.NODE_ENV === 'development' && hivePower > 1000) {
-        console.log(`Official Hive formula calculation for ${hivePower} HP:
+        console.log(`Official Hive formula for ${hivePower} HP:
         Total vests: ${totalVests.toFixed(6)}
         Final vest: ${finalVest.toFixed(0)}
         Power: ${power.toFixed(6)}
         RShares: ${rshares.toFixed(0)}
         Vote value (HIVE): ${voteValueHive.toFixed(6)}
         Vote value (USD): ${voteValueUsd.toFixed(6)}
-        HBD median price: ${hbdMedianPrice.toFixed(3)}
-        Current HIVE price: $${currentPrice}`);
+        HBD median: ${hbdMedianPrice.toFixed(3)}
+        HIVE price: $${currentPrice}`);
       }
 
       res.json({
