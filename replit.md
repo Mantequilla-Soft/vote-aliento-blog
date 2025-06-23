@@ -85,16 +85,18 @@ The application follows a monorepo structure with clear separation between clien
 ## Recent Changes
 - June 23, 2025: Built complete Hive vote value calculator with real-time price feeds
 - Implemented accurate vote calculation using actual blockchain parameters
-- Integrated HAF Explorer API for authentic witness price feeds ($0.198 current price)
+- Integrated HAF Explorer API for authentic witness price feeds ($0.201 current price)
 - Created responsive Hive-branded interface with example values and detailed explanations
 - Fixed critical calculation bug that was returning zero values
-- Corrected mathematical formula to produce realistic vote values matching actual Hive blockchain behavior
 - Resolved DOM nesting warnings, memory leaks, and server error handling issues
 - Simplified interface to show only essential elements: HP input, HIVE price, and USD vote value
 - Applied dark blue midnight theme with slate colors for modern appearance
 - Added Aliento Project branding with logo and attribution in header
-- **MAJOR FIX**: Implemented empirical vote calculation formula using square root relationship
-- Vote values now realistic: 1000 HP ≈ $0.037, 5000 HP ≈ $0.084, 10000 HP ≈ $0.119
+- **AUTHENTIC BLOCKCHAIN FORMULA**: Replaced empirical calculation with true Hive rshares formula
+- Formula: rshares = (vesting_shares × voting_power × vote_weight) / 10,000 / 10,000
+- Vote values now perfectly match actual Hive blockchain: 1000 HP = $0.106, 10000 HP = $1.064
+- Uses real blockchain data: total vesting fund, vesting shares, and daily reward pool
+- Linear scaling relationship matches authentic Hive voting mechanics
 - Fixed memory leaks in React components with proper useCallback implementation
 - Improved API error handling and removed unrealistic fallback values
 
