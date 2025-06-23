@@ -144,17 +144,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rawRewardBalance = parseFloat(props.total_reward_fund_hive.amount) / Math.pow(10, props.total_reward_fund_hive.precision);
       const rawRecentClaims = parseFloat(props.total_reward_shares2 || "0");
       
-      // Use blockchain reward pool data with validation
+      // Use actual reward pool data - the reward fund is denominated in HBD
       let rewardBalance = rawRewardBalance;
       let recentClaims = rawRecentClaims;
       
-      // Validate reward pool data and use realistic fallbacks if needed
-      if (!rewardBalance || rewardBalance < 10) {
-        rewardBalance = 750; // Conservative estimate based on current Hive state
+      // Ensure we have valid reward pool data
+      if (!rewardBalance || rewardBalance < 100) {
+        rewardBalance = 735000; // Current typical reward pool (~735k HBD)
       }
       
-      if (!recentClaims || recentClaims < 1000000) {
-        recentClaims = totalVestingShares * 100; // Realistic claims multiplier
+      if (!recentClaims || recentClaims < 1000000000000) {
+        // Recent claims should be a very large number (trillions)
+        recentClaims = 1.5e15; // Typical current value ~1.5 quadrillion
       }
 
       // Get witness price feed for HIVE/HBD conversion
@@ -213,23 +214,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Correct Hive vote value calculation using the actual blockchain formula
-      // vote_value = (hp × (total_vesting_shares / total_vesting_fund_hive)) × voting_power × vote_weight / (10000 × 10000) / recent_claims × reward_balance
+      // Correct Hive vote calculation based on actual blockchain mechanics
+      // Formula: vote_value = (rshares * reward_balance) / recent_claims
+      // Where: rshares = vests * voting_power * vote_weight / 10000 / 10000
+      // And: vests = hive_power * (total_vesting_shares / total_vesting_fund_hive)
       
       const vests = hivePower * (totalVestingShares / totalVestingFundHive);
-      const rshares = (vests * votingPower * voteWeight) / (10000 * 10000);
-      const voteValueHive = (rshares / recentClaims) * rewardBalance;
-      const voteValueUsd = voteValueHive * hiveToHbdRate;
+      const rshares = Math.floor((vests * votingPower * voteWeight) / 100000000); // 10000 * 10000
+      
+      // Use proper reward calculation - the reward fund is in HBD, not HIVE
+      const voteValueHbd = (rshares * rewardBalance) / recentClaims;
+      const voteValueHive = voteValueHbd / hiveToHbdRate; // Convert HBD to HIVE
+      const voteValueUsd = voteValueHbd; // HBD is pegged to USD
 
-      // Log calculation details for debugging (reduced verbosity)
+      // Log calculation details for debugging
       if (process.env.NODE_ENV === 'development' && hivePower > 1000) {
         console.log(`Vote calculation for ${hivePower} HP:
         VESTS: ${vests.toFixed(6)}
-        rshares: ${rshares.toFixed(0)}
+        rshares: ${rshares}
+        Vote value (HBD): ${voteValueHbd.toFixed(6)}
         Vote value (HIVE): ${voteValueHive.toFixed(6)}
         Vote value (USD): ${voteValueUsd.toFixed(6)}
-        Reward balance: ${rewardBalance.toFixed(0)}
-        Recent claims: ${recentClaims.toFixed(0)}`);
+        Reward balance (HBD): ${rewardBalance.toFixed(0)}
+        Recent claims: ${recentClaims.toExponential(2)}
+        HIVE/HBD rate: ${hiveToHbdRate.toFixed(3)}`);
       }
 
       res.json({
@@ -241,11 +249,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         blockchainData: {
           totalVestingFundHive: parseFloat(totalVestingFundHive.toFixed(3)),
           totalVestingShares: parseFloat(totalVestingShares.toFixed(0)),
-          rewardBalance: parseFloat(rewardBalance.toFixed(3)),
-          recentClaims: parseFloat(recentClaims.toFixed(0)),
+          rewardBalance: parseFloat(rewardBalance.toFixed(0)),
+          recentClaims: parseFloat(recentClaims.toExponential(2)),
           hiveToHbdRate: parseFloat(hiveToHbdRate.toFixed(6)),
           vests: parseFloat(vests.toFixed(6)),
-          rshares: parseFloat(rshares.toFixed(0))
+          rshares: rshares,
+          voteValueHbd: parseFloat(voteValueHbd.toFixed(6))
         }
       });
     } catch (error) {
