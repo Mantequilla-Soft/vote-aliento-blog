@@ -242,26 +242,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Empirical Hive vote calculation based on real-world observations
-      // Formula derived from actual Hive voting behavior patterns
+      // Authentic Hive blockchain vote calculation using rshares formula
+      // Formula: rshares = (vesting_shares × voting_power × vote_weight) / 10,000 / 10,000
       
-      // Base calculation using square root relationship (common in voting systems)
-      const baseVoteValue = Math.sqrt(hivePower) * 0.001;
+      // Convert Hive Power to vesting shares
+      const vestingShares = (hivePower * totalVestingShares) / totalVestingFundHive;
       
-      // Apply scaling factor based on current HIVE price and network conditions
-      const priceAdjustment = currentPrice / 0.20; // Normalize to $0.20 baseline
-      const networkScaling = 1.2; // Current network activity factor
+      // Calculate rshares using the authentic Hive formula
+      const rshares = (vestingShares * votingPower * voteWeight) / 10000 / 10000;
       
-      const voteValueUsd = baseVoteValue * priceAdjustment * networkScaling;
-      const voteValueHive = voteValueUsd / currentPrice;
+      // Convert rshares to vote value using current reward pool
+      // Vote value = (rshares / recent_claims) × reward_balance
+      const voteValueHive = (rshares / recentClaims) * rewardBalance;
+      const voteValueUsd = voteValueHive * currentPrice;
 
       // Log calculation details for debugging
       if (process.env.NODE_ENV === 'development' && hivePower > 1000) {
         console.log(`Vote calculation for ${hivePower} HP:
-        Base vote value: ${baseVoteValue.toFixed(6)}
-        Price adjustment: ${priceAdjustment.toFixed(3)}
-        Vote value (USD): ${voteValueUsd.toFixed(6)}
+        Vesting shares: ${vestingShares.toFixed(6)}
+        RShares: ${rshares.toFixed(0)}
         Vote value (HIVE): ${voteValueHive.toFixed(6)}
+        Vote value (USD): ${voteValueUsd.toFixed(6)}
         Current HIVE price: $${currentPrice}`);
       }
 
@@ -276,8 +277,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalVestingShares: parseFloat(totalVestingShares.toFixed(0)),
           dailyRewardPool: parseFloat(rewardBalance.toFixed(2)),
           virtualSupply: parseFloat(virtualSupply.toFixed(0)),
-          baseVoteValue: parseFloat(baseVoteValue.toFixed(6)),
-          priceAdjustment: parseFloat(priceAdjustment.toFixed(3))
+          vestingShares: parseFloat(vestingShares.toFixed(6)),
+          rshares: parseFloat(rshares.toFixed(0))
         }
       });
     } catch (error) {
