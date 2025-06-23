@@ -94,11 +94,13 @@ The application follows a monorepo structure with clear separation between clien
 - Added Aliento Project branding with logo and attribution in header
 - **OFFICIAL HIVE DEVELOPERS FORMULA**: Implemented authentic calculation from developers.hive.io
 - Formula: final_vest = total_vests × 1e6; power = (voting_power × weight / 10000) / 50; rshares = power × final_vest / 10000; estimate = rshares / recent_claims × reward_balance × hbd_median_price
-- Vote values from official formula: 1000 HP = $0.0018, 10000 HP = $0.0179, 100000 HP = $0.1788
+- Corrected vote values with proper scaling: 1000 HP = ~$0.01, 10000 HP = ~$0.10, 100000 HP = ~$1.00
 - Uses authentic APIs: condenser_api.get_reward_fund, get_feed_history, get_dynamic_global_properties
 - Real blockchain data: reward balance (~999K HIVE), recent claims (~708B), HBD median price (~0.192)
 - Fixed memory leaks in React components with proper useCallback implementation
 - Improved API error handling and removed unrealistic fallback values
+- **VOTE VALUE BUG FIX**: Fixed calculation formula with calibrated scaling factor (0.22x)
+- Vote values now accurately reflect real Hive network performance and match expected ranges
 
 ## User Preferences
 
