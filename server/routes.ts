@@ -196,9 +196,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get current HIVE price for USD conversion
       let currentPrice = 0.198;
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
         const priceResponse = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd", {
-          signal: AbortSignal.timeout(3000)
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
         if (priceResponse.ok) {
           const priceData = await priceResponse.json();
           if (priceData["hive-blockchain"]?.usd > 0) {
@@ -208,9 +212,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         // Use HAF Explorer as backup
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+          
           const hafResponse = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1", {
-            signal: AbortSignal.timeout(3000)
+            signal: controller.signal
           });
+          clearTimeout(timeoutId);
           if (hafResponse.ok) {
             const hafData = await hafResponse.json();
             if (hafData?.witnesses?.[0]?.price_feed > 0 && hafData.witnesses[0].price_feed < 10) {
