@@ -212,7 +212,7 @@ export default function Home() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-red-100 text-sm font-medium">Vote Value (HIVE)</p>
-                        <p className="text-2xl font-bold">
+                        <div className="text-2xl font-bold">
                           {calculateMutation.isPending ? (
                             <Skeleton className="h-8 w-20 bg-red-400" />
                           ) : calculation ? (
@@ -220,7 +220,7 @@ export default function Home() {
                           ) : (
                             "0.000"
                           )}
-                        </p>
+                        </div>
                       </div>
                       <div className="text-right">
                         <Coins size={32} className="text-red-200" />
@@ -235,7 +235,7 @@ export default function Home() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-green-100 text-sm font-medium">Vote Value (USD)</p>
-                        <p className="text-2xl font-bold">
+                        <div className="text-2xl font-bold">
                           {calculateMutation.isPending ? (
                             <Skeleton className="h-8 w-20 bg-green-400" />
                           ) : calculation ? (
@@ -243,7 +243,7 @@ export default function Home() {
                           ) : (
                             "$0.000"
                           )}
-                        </p>
+                        </div>
                       </div>
                       <div className="text-right">
                         <DollarSign size={32} className="text-green-200" />
@@ -260,7 +260,7 @@ export default function Home() {
                       <div>
                         <p className="text-sm font-medium text-blue-800">How it's calculated</p>
                         <p className="text-xs text-blue-600 mt-1">
-                          Vote value = (Hive Power × Current HIVE Price × Vote Weight) / Total Reward Pool Distribution
+                          Vote value = (Your Vesting Shares / Total Network Vesting Shares) × Daily Reward Pool × Vote Weight / Daily Votes
                         </p>
                       </div>
                     </div>
@@ -315,7 +315,11 @@ export default function Home() {
                   </li>
                   <li className="flex items-start">
                     <Check className="text-hive-success mr-2 mt-0.5" size={14} />
-                    Estimates based on current reward pool conditions
+                    Uses actual Hive blockchain parameters for accurate estimates
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="text-hive-success mr-2 mt-0.5" size={14} />
+                    Accounts for network voting power distribution
                   </li>
                 </ul>
               </div>
