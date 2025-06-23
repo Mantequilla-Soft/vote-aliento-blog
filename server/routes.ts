@@ -202,30 +202,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("Could not fetch price for calculation:", error);
       }
 
-      // Accurate Hive vote value calculation based on actual blockchain mechanics
-      const calculateVoteValue = (hivePower: number, hivePrice: number): number => {
-        // Empirical formula based on actual Hive vote values observed in production
-        // This accounts for the complex interaction of reward pool, voting power, and curation
-        
-        // Base vote strength per HP (empirically derived from actual Hive data)
-        const baseVoteStrength = 0.000013; // ~$0.000013 per HP at $0.20 HIVE price
-        
-        // Calculate raw vote value
-        const rawVoteValue = hivePower * baseVoteStrength;
-        
-        // Apply price scaling (vote values scale roughly linearly with HIVE price)
-        const priceScalingFactor = hivePrice / 0.20; // Normalize to $0.20 baseline
-        
-        return rawVoteValue * priceScalingFactor;
-      };
-
-      // Calculate vote value using the corrected formula
-      const voteValueUsd = calculateVoteValue(hivePower, currentPrice);
-      const voteValueHive = voteValueUsd / currentPrice;
-
-      // Calculate traditional blockchain values for debugging/reference
+      // Correct Hive vote value calculation using the actual blockchain formula
+      // vote_value = (hp × (total_vesting_shares / total_vesting_fund_hive)) × voting_power × vote_weight / (10000 × 10000) / recent_claims × reward_balance
+      
       const vests = hivePower * (totalVestingShares / totalVestingFundHive);
       const rshares = (vests * votingPower * voteWeight) / (10000 * 10000);
+      const voteValueHive = (rshares / recentClaims) * rewardBalance;
+      const voteValueUsd = voteValueHive * hiveToHbdRate;
 
       // Log calculation details for debugging (reduced verbosity)
       if (process.env.NODE_ENV === 'development') {
