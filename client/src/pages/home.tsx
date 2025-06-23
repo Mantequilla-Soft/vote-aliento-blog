@@ -153,13 +153,13 @@ export default function Home() {
             {/* Vote Value in USD */}
             <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg p-6 text-center shadow-lg">
               <p className="text-blue-100 text-sm font-medium mb-2">Vote Value</p>
-              <div className="text-3xl font-bold">
+              <div className="text-3xl font-bold min-h-[2.5rem] flex items-center justify-center">
                 {calculateMutation.isPending ? (
-                  <span className="inline-block h-10 w-24 bg-blue-500 rounded animate-pulse"></span>
+                  <span className="inline-block h-8 w-20 bg-blue-500 rounded animate-pulse"></span>
                 ) : calculation ? (
-                  `$${calculation.voteValueUsd.toFixed(3)}`
+                  <span className="font-mono">${calculation.voteValueUsd.toFixed(3)}</span>
                 ) : (
-                  "$0.000"
+                  <span className="font-mono">$0.000</span>
                 )}
               </div>
             </div>
