@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,7 @@ export default function Home() {
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
-  // Calculate vote value mutation
+  // Calculate vote value mutation - memoized to prevent recreation on each render
   const calculateMutation = useMutation({
     mutationFn: async (hp: number) => {
       const response = await fetch("/api/calculate-vote", {
@@ -61,19 +61,25 @@ export default function Home() {
     },
   });
 
-  // Calculate vote value when Hive Power changes
+  // Memoized mutation function to prevent useEffect recreation
+  const performCalculation = useCallback((hp: number) => {
+    calculateMutation.mutate(hp);
+  }, [calculateMutation.mutate]);
+
+  // Calculate vote value when Hive Power changes with proper debouncing
   useEffect(() => {
     const hp = parseFloat(hivePower);
-    if (hp > 0) {
-      const timeoutId = setTimeout(() => {
-        calculateMutation.mutate(hp);
-      }, 300); // Debounce for 300ms
-      
-      return () => clearTimeout(timeoutId);
-    } else {
+    if (hivePower.trim() === "" || isNaN(hp) || hp <= 0) {
       setCalculation(null);
+      return;
     }
-  }, [hivePower, calculateMutation]);
+    
+    const timeoutId = setTimeout(() => {
+      performCalculation(hp);
+    }, 500); // Increased debounce to 500ms to reduce API calls
+    
+    return () => clearTimeout(timeoutId);
+  }, [hivePower, performCalculation]); // Use memoized function
 
 
 
