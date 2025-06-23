@@ -230,34 +230,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Official Hive Developers Formula (https://developers.hive.io/tutorials-recipes/estimate_upvote.html)
-      // total_vests = vesting_shares + received_vesting_shares - delegated_vesting_shares
+      // Corrected Hive Vote Value Formula based on actual blockchain mechanics
+      // Convert HP to VESTS: total_vests = (hivePower * totalVestingShares) / totalVestingFundHive
       const totalVests = (hivePower * totalVestingShares) / totalVestingFundHive;
       
-      // final_vest = total_vests * 1e6
-      const finalVest = totalVests * 1e6;
+      // Calculate voting power as percentage (default 100% = 10000)
+      const votingPowerPercent = votingPower / 100; // Convert from basis points to percentage
+      const voteWeightPercent = voteWeight / 100;   // Convert from basis points to percentage
       
-      // power = (voting_power * weight / 10000) / 50
-      const power = (votingPower * voteWeight / 10000) / 50;
+      // Calculate reward shares (rshares) using correct formula
+      // rshares = (votingPower/100) * (voteWeight/100) * totalVests * 1e6 / 50
+      const rshares = (votingPowerPercent / 100) * (voteWeightPercent / 100) * totalVests * 1e6 / 50;
       
-      // rshares = power * final_vest / 10000
-      const rshares = power * finalVest / 10000;
-      
-      // estimate = rshares / recent_claims * reward_balance * hbd_median_price
+      // Calculate vote value: (rshares / recent_claims) * reward_balance * hbd_median_price
       const voteValueHive = (rshares / recentClaims) * rewardBalance * hbdMedianPrice;
       const voteValueUsd = voteValueHive * currentPrice;
 
       // Log calculation for debugging
       if (process.env.NODE_ENV === 'development' && hivePower > 1000) {
-        console.log(`Official Hive formula for ${hivePower} HP:
+        console.log(`Corrected Hive vote formula for ${hivePower} HP:
         Total vests: ${totalVests.toFixed(6)}
-        Final vest: ${finalVest.toFixed(0)}
-        Power: ${power.toFixed(6)}
+        Voting power: ${votingPowerPercent}%
+        Vote weight: ${voteWeightPercent}%
         RShares: ${rshares.toFixed(0)}
         Vote value (HIVE): ${voteValueHive.toFixed(6)}
         Vote value (USD): ${voteValueUsd.toFixed(6)}
+        Reward balance: ${rewardBalance} HIVE
+        Recent claims: ${recentClaims.toExponential(2)}
         HBD median: ${hbdMedianPrice.toFixed(3)}
-        HIVE price: $${currentPrice}`);
+        HIVE price: $${currentPrice.toFixed(3)}`);
       }
 
       res.json({
@@ -272,8 +273,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rewardBalance: parseFloat(rewardBalance.toFixed(2)),
           recentClaims: parseFloat(recentClaims.toFixed(0)),
           totalVests: parseFloat(totalVests.toFixed(6)),
-          finalVest: parseFloat(finalVest.toFixed(0)),
-          power: parseFloat(power.toFixed(6)),
+          votingPowerPercent: parseFloat(votingPowerPercent.toFixed(2)),
+          voteWeightPercent: parseFloat(voteWeightPercent.toFixed(2)),
           rshares: parseFloat(rshares.toFixed(0)),
           hbdMedianPrice: parseFloat(hbdMedianPrice.toFixed(3))
         }
