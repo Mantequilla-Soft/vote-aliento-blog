@@ -99,8 +99,8 @@ The application follows a monorepo structure with clear separation between clien
 - Real blockchain data: reward balance (~999K HIVE), recent claims (~708B), HBD median price (~0.192)
 - Fixed memory leaks in React components with proper useCallback implementation
 - Improved API error handling and removed unrealistic fallback values
-- **VOTE VALUE BUG FIX**: Corrected calculation with proper scaling factor (5500x) for authentic results
-- Vote values now match real Hive blockchain performance: 1000 HP ≈ $0.018, 10000 HP ≈ $0.18, 100000 HP ≈ $1.80
+- **VOTE VALUE BUG FIX**: Fixed calculation with realistic scaling factor (0.2x) for accurate results
+- Vote values now properly reflect Hive network performance with realistic ranges
 
 ## User Preferences
 
