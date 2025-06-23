@@ -110,7 +110,7 @@ export default function Home() {
               <h1 className="text-xl font-semibold">Hive Upvote Calculator</h1>
             </div>
             <p className="text-blue-100 text-xs">
-              Built by{' '}
+              Built by the {' '}
               <a 
                 href="https://aliento.blog" 
                 target="_blank" 
