@@ -82,7 +82,15 @@ export default function Home() {
       <div className="w-full max-w-md">
         <Card className="shadow-2xl bg-slate-800 border-slate-700">
           <CardHeader className="bg-gradient-to-r from-blue-900 to-blue-800 text-white text-center">
-            <h1 className="text-xl font-semibold">Hive Vote Calculator</h1>
+            <div className="flex items-center justify-center space-x-3 mb-2">
+              <img 
+                src="/assets/image_1750717762447.png" 
+                alt="Aliento Project Logo" 
+                className="w-8 h-8 rounded-full"
+              />
+              <h1 className="text-xl font-semibold">Hive Vote Calculator</h1>
+            </div>
+            <p className="text-blue-100 text-xs">Built by Aliento Project</p>
           </CardHeader>
 
           <CardContent className="p-6 space-y-6">

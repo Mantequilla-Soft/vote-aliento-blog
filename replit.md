@@ -92,8 +92,10 @@ The application follows a monorepo structure with clear separation between clien
 - Resolved DOM nesting warnings, memory leaks, and server error handling issues
 - Simplified interface to show only essential elements: HP input, HIVE price, and USD vote value
 - Applied dark blue midnight theme with slate colors for modern appearance
+- Added Aliento Project branding with logo and attribution in header
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 UI Design: Dark blue midnight theme with minimal, clean interface showing only essential elements.
+Branding: Include Aliento Project logo and attribution in the application header.
