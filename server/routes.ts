@@ -167,11 +167,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const voteStrength = Math.min(Math.max((votingPower || 10000) / 100, 0), 100);
       const voteWeightPercent = Math.min(Math.max((voteWeight || 10000) / 100, 0), 100);
       
-      // 3. Empirically calibrated vote value formula
+      // 3. Realistic vote value formula
       // Target: 1K HP ≈ $0.02, 10K HP ≈ $0.20, 100K HP ≈ $2.00
       // This matches real Hive network performance observed in practice
       const votePowerFactor = (voteStrength / 100) * (voteWeightPercent / 100);
-      const baseVoteValue = (hivePower / 50000) * votePowerFactor; // Calibrated divisor
+      const baseVoteValue = (hivePower / 50000) * votePowerFactor * 0.001; // Proper scaling
       
       // 4. Get authentic HBD price for USD conversion
       let hbdPrice = 1.0; // HBD typically trades close to $1
