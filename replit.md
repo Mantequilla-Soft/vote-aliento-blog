@@ -99,12 +99,12 @@ The application follows a monorepo structure with clear separation between clien
 - Real blockchain data: reward balance (~999K HIVE), recent claims (~708B), HBD median price (~0.192)
 - Fixed memory leaks in React components with proper useCallback implementation
 - Improved API error handling and removed unrealistic fallback values
-- **COMPLETE FORMULA REBUILD & CORRECTION**: Implemented accurate Hive blockchain vote calculation
-- Fixed RShares calculation: (vests * voting_power * weight) / 10000
-- Added authentic HBD exchange rate from condenser_api.get_feed_history
-- Applied correct 10x scaling factor for realistic vote values
-- Final values: 1K HP ≈ $0.009, 10K HP ≈ $0.09, 100K HP ≈ $0.90
-- Formula now matches actual Hive network performance with real-time blockchain data
+- **ECENCY VISION FORMULA IMPLEMENTATION**: Implemented official Ecency vote calculation formula
+- Uses authentic vestsToRshares algorithm: used_power = (voting_power * abs_weight + 49) / 50
+- Exact Ecency formula: (rShares / fundRecentClaims) * fundRewardBalance * (base / quote)
+- Removed all artificial scaling factors for authentic blockchain calculations
+- HBD price feed from condenser_api.get_feed_history for accurate base/quote ratio
+- Formula directly matches Ecency interface and actual Hive network behavior
 
 ## User Preferences
 
