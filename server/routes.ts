@@ -157,24 +157,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Use fallback price if API fails
       }
 
-      // AUTHENTIC HIVE VOTE VALUE CALCULATION
-      // Based on actual Hive blockchain source code analysis
+      // ECENCY VISION FORMULA - AUTHENTIC HIVE VOTE CALCULATION
+      // Based on official Ecency implementation: https://github.com/ecency/vision-next
       
-      // 1. Convert Hive Power to VESTS
-      const userVests = (hivePower * totalVestingShares) / totalVestingFundHive;
+      // 1. Convert Hive Power to total VESTS (including delegations)
+      const totalVests = (hivePower * totalVestingShares) / totalVestingFundHive;
       
-      // 2. Calculate effective voting parameters
+      // 2. Normalize voting parameters (0-10000 range)
       const weight = Math.min(Math.max(voteWeight || 10000, 0), 10000);
-      const votePower = Math.min(Math.max(votingPower || 10000, 0), 10000);
+      const votePower = Math.min(Math.max(votingPower || 10000, 0), 10000) / 100; // Convert to 0-100 range
       
-      // 3. Calculate RShares using CORRECT Hive formula
-      // Based on actual Hive blockchain code analysis
-      // The formula is: rshares = vests * voting_power * weight / 10000
-      // Then multiply by a factor for proper scaling
-      const rshares = Math.floor((userVests * votePower * weight) / 10000);
+      // 3. Calculate RShares using Ecency's vestsToRshares formula
+      // Based on Hive blockchain: used_power = (voting_power * abs_weight + 49) / 50
+      const usedPower = Math.floor((votePower * 100 * Math.abs(weight) + 49) / 50);
+      const finalVest = Math.floor(totalVests * 1000000);
+      const rshares = Math.floor((usedPower * finalVest) / 10000);
       
-      // 4. Get HBD exchange rate (fetch from feed_history for accuracy)
-      let hbdExchangeRate = 1.0; // Default 1 HBD = 1 USD
+      // 4. Get HBD price feed (base/quote ratio from feed_history)
+      let base = 1.0, quote = 1.0;
       try {
         const feedResponse = await fetchWithTimeout("https://api.hive.blog", {
           method: "POST",
@@ -189,40 +189,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (feedResponse.ok) {
           const feedData = await feedResponse.json();
           if (feedData.result?.current_median_history) {
-            const base = parseFloat(feedData.result.current_median_history.base.split(' ')[0]);
-            const quote = parseFloat(feedData.result.current_median_history.quote.split(' ')[0]);
-            hbdExchangeRate = base / quote; // This gives HIVE per HBD
+            base = parseFloat(feedData.result.current_median_history.base.split(' ')[0]);
+            quote = parseFloat(feedData.result.current_median_history.quote.split(' ')[0]);
           }
         }
       } catch (error) {
-        console.log("Using default HBD exchange rate");
+        console.log("Using default HBD price feed");
       }
       
-      // 5. Calculate vote value using CORRECTED reward fund mechanics
-      // The actual formula includes proper scaling for realistic values
-      // Real Hive votes: 1K HP ≈ $0.02, 10K HP ≈ $0.20, 100K HP ≈ $2.00
-      const baseVoteValue = (rshares / recentClaims) * rewardBalance;
-      
-      // Apply realistic scaling factor based on actual Hive network performance
-      // Analysis shows actual votes are ~10x higher than basic calculation
-      const scalingFactor = 10; 
-      const voteValueHbd = baseVoteValue * scalingFactor;
-      const voteValueHive = voteValueHbd * hbdExchangeRate;
+      // 5. Ecency's exact vote value formula
+      // votingValue = (rShares / fundRecentClaims) * fundRewardBalance * (base / quote)
+      const voteValueHive = (rshares / recentClaims) * rewardBalance * (base / quote);
       const voteValueUsd = voteValueHive * currentPrice;
 
       // Debug logging for development
       if (process.env.NODE_ENV === 'development') {
-        console.log(`FIXED Hive vote calculation for ${hivePower} HP:
-        VESTS: ${userVests.toFixed(2)}
-        Vote Power: ${votePower/100}%
+        console.log(`ECENCY FORMULA - Hive vote calculation for ${hivePower} HP:
+        Total VESTS: ${totalVests.toFixed(2)}
+        Vote Power: ${votePower}%
         Vote Weight: ${weight/100}%
+        Used Power: ${usedPower}
+        Final VEST: ${finalVest}
         RShares: ${rshares}
-        Base Vote Value: ${baseVoteValue.toFixed(8)}
-        Scaling Factor: ${scalingFactor}x
         Reward Pool: ${rewardBalance.toFixed(0)} HIVE
         Recent Claims: ${recentClaims.toExponential(2)}
-        HBD Exchange Rate: ${hbdExchangeRate.toFixed(4)}
-        Vote Value (HBD): ${voteValueHbd.toFixed(6)}
+        HBD Price Feed: ${base.toFixed(4)} / ${quote.toFixed(4)} = ${(base/quote).toFixed(4)}
         Vote Value (HIVE): ${voteValueHive.toFixed(6)}
         Vote Value (USD): ${voteValueUsd.toFixed(6)}
         HIVE Price: $${currentPrice.toFixed(3)}`);
@@ -239,14 +230,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalVestingShares: totalVestingShares,
           rewardBalance: rewardBalance,
           recentClaims: recentClaims,
-          userVests: parseFloat(userVests.toFixed(6)),
+          totalVests: parseFloat(totalVests.toFixed(6)),
           votePower: votePower,
           weight: weight,
+          usedPower: usedPower,
+          finalVest: finalVest,
           rshares: rshares,
-          baseVoteValue: parseFloat(baseVoteValue.toFixed(8)),
-          scalingFactor: scalingFactor,
-          hbdExchangeRate: parseFloat(hbdExchangeRate.toFixed(4)),
-          voteValueHbd: parseFloat(voteValueHbd.toFixed(6))
+          base: base,
+          quote: quote,
+          priceRatio: parseFloat((base/quote).toFixed(4))
         }
       });
     } catch (error) {
