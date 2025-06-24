@@ -163,15 +163,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 1. Convert Hive Power to total VESTS (including delegations)
       const totalVests = (hivePower * totalVestingShares) / totalVestingFundHive;
       
-      // 2. Normalize voting parameters (0-10000 range)
+      // 2. Normalize voting parameters
       const weight = Math.min(Math.max(voteWeight || 10000, 0), 10000);
-      const votePower = Math.min(Math.max(votingPower || 10000, 0), 10000) / 100; // Convert to 0-100 range
+      const votePower = Math.min(Math.max(votingPower || 10000, 0), 10000); // Keep as 0-10000
       
-      // 3. Calculate RShares using correct Hive blockchain formula
-      // From Hive source: used_power = (voting_power * abs_weight + 49) / 50
-      // Note: votePower is already 0-100, weight is 0-10000
+      // 3. Implement Ecency's vestsToRshares formula exactly
+      // From Hive blockchain source: used_power = (voting_power * abs_weight + 49) / 50
       const usedPower = Math.floor((votePower * Math.abs(weight) + 49) / 50);
-      const rshares = Math.floor((totalVests * usedPower) / 10000);
+      
+      // Calculate final VEST value (multiply by 1M for proper precision)
+      const finalVest = Math.floor(totalVests * 1000000);
+      
+      // Calculate RShares: (used_power * final_vest) / 10000
+      const rshares = Math.floor((usedPower * finalVest) / 10000);
       
       // 4. Get HBD price feed (base/quote ratio from feed_history)
       let base = 1.0, quote = 1.0;
@@ -204,11 +208,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Debug logging for development
       if (process.env.NODE_ENV === 'development') {
-        console.log(`CORRECTED ECENCY - Hive vote calculation for ${hivePower} HP:
+        console.log(`ECENCY VESTTORSHARES - Hive vote calculation for ${hivePower} HP:
         Total VESTS: ${totalVests.toFixed(2)}
-        Vote Power: ${votePower}%
+        Vote Power: ${votePower/100}%
         Vote Weight: ${weight/100}%
         Used Power: ${usedPower}
+        Final VEST: ${finalVest}
         RShares: ${rshares}
         Reward Pool: ${rewardBalance.toFixed(0)} HIVE
         Recent Claims: ${recentClaims.toExponential(2)}
@@ -233,6 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           votePower: votePower,
           weight: weight,
           usedPower: usedPower,
+          finalVest: finalVest,
           rshares: rshares,
           base: base,
           quote: quote,
