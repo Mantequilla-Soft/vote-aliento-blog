@@ -11,56 +11,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
 
 
-      // Try CoinGecko as primary source
+      // Use witness price feed as primary source (authentic blockchain data)
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
         
-        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd", {
+        const response = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1", {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
         
         if (response.ok) {
           const data = await response.json();
-          if (data["hive-blockchain"] && data["hive-blockchain"].usd && data["hive-blockchain"].usd > 0) {
-            hivePrice = data["hive-blockchain"].usd;
-            priceSource = "CoinGecko API";
+          if (process.env.NODE_ENV === 'development') {
+            console.log("HAF Explorer response:", JSON.stringify(data).substring(0, 500));
+          }
+          
+          // Parse HAF Explorer API response - it returns witnesses array with price_feed numbers
+          if (data && data.witnesses && Array.isArray(data.witnesses) && data.witnesses.length > 0) {
+            const witness = data.witnesses[0];
+            
+            if (typeof witness.price_feed === 'number' && witness.price_feed > 0 && witness.price_feed < 10) {
+              hivePrice = witness.price_feed;
+              priceSource = "Witness Price Feed";
+            }
           }
         }
       } catch (error) {
-        console.warn("CoinGecko API failed:", error);
+        console.warn("Witness price feed failed:", error);
       }
 
-      // If CoinGecko fails, try HAF Explorer with improved parsing
+      // If witness price feed fails, try CoinGecko as backup
       if (!hivePrice) {
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 5000);
           
-          const response = await fetch("https://api.syncad.com/hafbe-api/witnesses?limit=1", {
+          const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd", {
             signal: controller.signal
           });
           clearTimeout(timeoutId);
           
           if (response.ok) {
             const data = await response.json();
-            if (process.env.NODE_ENV === 'development') {
-              console.log("HAF Explorer response:", JSON.stringify(data).substring(0, 500));
-            }
-            
-            // Parse HAF Explorer API response - it returns witnesses array with price_feed numbers
-            if (data && data.witnesses && Array.isArray(data.witnesses) && data.witnesses.length > 0) {
-              const witness = data.witnesses[0];
-              
-              if (typeof witness.price_feed === 'number' && witness.price_feed > 0 && witness.price_feed < 10) {
-                hivePrice = witness.price_feed;
-                priceSource = "HAF Explorer API";
-              }
+            if (data["hive-blockchain"] && data["hive-blockchain"].usd && data["hive-blockchain"].usd > 0) {
+              hivePrice = data["hive-blockchain"].usd;
+              priceSource = "CoinGecko API (backup)";
             }
           }
         } catch (error) {
-          console.warn("HAF Explorer API failed:", error);
+          console.warn("CoinGecko API backup failed:", error);
         }
       }
 
@@ -143,18 +143,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rewardBalance = parseFloat(rewardFund.reward_balance.split(' ')[0]);
       const recentClaims = parseFloat(rewardFund.recent_claims);
 
-      // Get current HIVE price
+      // Get current HIVE price from witness price feed
       let currentPrice = 0.20;
       try {
-        const priceResponse = await fetchWithTimeout("https://api.coingecko.com/api/v3/simple/price?ids=hive-blockchain&vs_currencies=usd", {}, 5000);
+        const priceResponse = await fetchWithTimeout("https://api.syncad.com/hafbe-api/witnesses?limit=1", {}, 5000);
         if (priceResponse.ok) {
           const priceData = await priceResponse.json();
-          if (priceData["hive-blockchain"]?.usd > 0) {
-            currentPrice = priceData["hive-blockchain"].usd;
+          if (priceData?.witnesses?.[0]?.price_feed > 0) {
+            currentPrice = priceData.witnesses[0].price_feed;
           }
         }
       } catch (error) {
-        // Use fallback price if API fails
+        // Use fallback price if witness feed fails
       }
 
       // ACCURATE HIVE VOTE CALCULATION
