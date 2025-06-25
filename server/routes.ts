@@ -157,8 +157,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Use fallback price if API fails
       }
 
-      // CALIBRATED HIVE VOTE CALCULATION
-      // Based on empirical analysis of actual Hive network vote values
+      // ACCURATE HIVE VOTE CALCULATION
+      // Using the proper rshares-based formula from Hive blockchain
       
       // 1. Convert Hive Power to VESTS
       const totalVests = (hivePower * totalVestingShares) / totalVestingFundHive;
@@ -166,51 +166,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 2. Calculate vote strength (0-100%)
       const voteStrength = Math.min(Math.max((votingPower || 10000) / 100, 0), 100);
       const voteWeightPercent = Math.min(Math.max((voteWeight || 10000) / 100, 0), 100);
-      
-      // 3. Realistic vote value formula
-      // Target: 1K HP ≈ $0.02, 10K HP ≈ $0.20, 100K HP ≈ $2.00
-      // This matches real Hive network performance observed in practice
       const votePowerFactor = (voteStrength / 100) * (voteWeightPercent / 100);
-      const baseVoteValue = (hivePower / 50000) * votePowerFactor * 0.001; // Proper scaling
       
-      // 4. Get authentic HBD price for USD conversion
-      let hbdPrice = 1.0; // HBD typically trades close to $1
-      try {
-        const feedResponse = await fetchWithTimeout("https://api.hive.blog", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            method: "condenser_api.get_feed_history",
-            id: 3
-          })
-        }, 5000);
-        
-        if (feedResponse.ok) {
-          const feedData = await feedResponse.json();
-          if (feedData.result?.current_median_history) {
-            const base = parseFloat(feedData.result.current_median_history.base.split(' ')[0]);
-            const quote = parseFloat(feedData.result.current_median_history.quote.split(' ')[0]);
-            hbdPrice = quote / base; // HBD/USD ratio
-          }
-        }
-      } catch (error) {
-        console.log("Using default HBD price");
-      }
+      // 3. Calculate rshares using Hive's formula
+      // rshares = voting_power * vests * 1e6 / 10000
+      const finalVest = totalVests * 1e6;
+      const power = (votePowerFactor * 10000) / 50;
+      const rshares = (power * finalVest) / 10000;
       
-      // 5. Final vote value calculation
-      const voteValueHive = baseVoteValue / currentPrice; // Convert USD to HIVE
-      const voteValueUsd = baseVoteValue * hbdPrice;
+      // 4. Calculate vote value using the accurate rshares formula
+      const voteValueHive = (rshares / recentClaims) * rewardBalance;
+      const voteValueUsd = voteValueHive * currentPrice;
 
       // Debug logging for development
       if (process.env.NODE_ENV === 'development') {
-        console.log(`CALIBRATED HIVE VOTE - Calculation for ${hivePower} HP:
+        console.log(`RSHARES-BASED HIVE VOTE - Calculation for ${hivePower} HP:
         Total VESTS: ${totalVests.toFixed(2)}
         Vote Strength: ${voteStrength.toFixed(1)}%
         Vote Weight: ${voteWeightPercent.toFixed(1)}%
         Vote Power Factor: ${votePowerFactor.toFixed(4)}
-        Base Vote Value: $${baseVoteValue.toFixed(6)}
-        HBD Price: $${hbdPrice.toFixed(4)}
+        RShares: ${rshares.toFixed(0)}
+        Reward Balance: ${rewardBalance.toFixed(2)} HIVE
+        Recent Claims: ${recentClaims.toFixed(0)}
         Vote Value (HIVE): ${voteValueHive.toFixed(6)}
         Vote Value (USD): ${voteValueUsd.toFixed(6)}
         HIVE Price: $${currentPrice.toFixed(3)}`);
@@ -231,8 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           voteStrength: voteStrength,
           voteWeightPercent: voteWeightPercent,
           votePowerFactor: parseFloat(votePowerFactor.toFixed(4)),
-          hbdPrice: parseFloat(hbdPrice.toFixed(4)),
-          baseVoteValue: parseFloat(baseVoteValue.toFixed(6))
+          rshares: parseFloat(rshares.toFixed(0))
         }
       });
     } catch (error) {
