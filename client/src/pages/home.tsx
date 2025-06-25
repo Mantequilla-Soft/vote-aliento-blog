@@ -114,7 +114,7 @@ export default function Home() {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-2xl bg-slate-800 border-slate-700">
-          <CardHeader className="bg-gradient-to-r from-blue-900 to-blue-800 text-white text-center">
+          <CardHeader className="bg-gradient-to-r from-blue-900 to-blue-800 text-white text-center rounded-t-lg">
             <div className="flex items-center justify-center space-x-3 mb-2">
               <img 
                 src="/assets/image_1750717762447.png" 
