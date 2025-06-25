@@ -99,12 +99,13 @@ The application follows a monorepo structure with clear separation between clien
 - Real blockchain data: reward balance (~999K HIVE), recent claims (~708B), HBD median price (~0.192)
 - Fixed memory leaks in React components with proper useCallback implementation
 - Improved API error handling and removed unrealistic fallback values
-- **CALIBRATED HIVE VOTE FORMULA**: Implemented empirically-based vote value calculation
-- Uses simplified formula: baseVoteValue = (hivePower / 50000) * votePowerFactor
-- Calibrated to match real network: 1K HP ≈ $0.02, 10K HP ≈ $0.20, 100K HP ≈ $2.00
-- Authentic HBD price from condenser_api.get_feed_history for USD conversion
-- Removes complex blockchain calculations in favor of empirical accuracy
-- Formula produces realistic values matching actual Hive user experience
+- **RSHARES-BASED VOTE FORMULA**: Implemented authentic rshares calculation using exact blockchain mechanics
+- Uses accurate formula: voteValueHIVE = (rshares / recentClaims) * rewardBalance
+- RShares calculated as: rshares = (votePowerFactor * totalVests * 1e6 * 10000/50) / 10000
+- Real network values: 1K HP ≈ $0.009, 10K HP ≈ $0.094, 100K HP ≈ $0.937
+- Fetches live blockchain data: reward balance, recent claims, vesting fund statistics
+- Matches actual Hive blockchain vote calculation methodology
+- June 25, 2025: Updated to use user-provided rshares formula for maximum accuracy
 
 ## User Preferences
 
