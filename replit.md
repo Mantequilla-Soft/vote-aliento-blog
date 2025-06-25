@@ -106,6 +106,7 @@ The application follows a monorepo structure with clear separation between clien
 - Fetches live blockchain data: reward balance, recent claims, vesting fund statistics
 - Matches actual Hive blockchain vote calculation methodology
 - June 25, 2025: Updated to use user-provided rshares formula for maximum accuracy
+- Switched to witness price feeds as primary price source instead of CoinGecko for authentic blockchain pricing
 
 ## User Preferences
 
