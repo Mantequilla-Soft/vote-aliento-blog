@@ -117,9 +117,11 @@ The application follows a monorepo structure with clear separation between clien
 - Moved attribution link from header to bottom of interface for cleaner design
 - Replaced translation toggle icon from gear/settings to Globe icon for better user intuition
 - Added dark theme support with theme toggle button (Sun/Moon icon) in header
-- Dark theme uses same blue color palette optimized for darker backgrounds
+- Dark theme uses slate color palette with improved contrast over original blue scheme
 - Theme preference persists in localStorage with "hive-calculator-theme" key
-- Dark mode includes enhanced contrast and readability for all UI components
+- Dark mode implementation needs further refinement per user feedback
+- Added custom favicon with Hive-themed circular logo featuring blue and purple design
+- Enhanced HTML with proper meta tags, title, and Open Graph tags for social sharing
 
 ## User Preferences
 
