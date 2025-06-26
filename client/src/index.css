@@ -1,59 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(210, 11%, 18%);
-  --muted: hsl(210, 40%, 96%);
+  --foreground: hsl(215, 25%, 27%);
+  --muted: hsl(200, 50%, 95%);
   --muted-foreground: hsl(215, 16%, 47%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(210, 11%, 18%);
+  --popover-foreground: hsl(215, 25%, 27%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(210, 11%, 18%);
-  --border: hsl(214, 32%, 91%);
-  --input: hsl(214, 32%, 91%);
-  --primary: hsl(346, 87%, 56%);
+  --card-foreground: hsl(215, 25%, 27%);
+  --border: hsl(200, 50%, 90%);
+  --input: hsl(200, 50%, 90%);
+  --primary: hsl(199, 89%, 48%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(210, 40%, 96%);
-  --secondary-foreground: hsl(210, 11%, 18%);
-  --accent: hsl(210, 40%, 96%);
-  --accent-foreground: hsl(210, 11%, 18%);
+  --secondary: hsl(200, 50%, 95%);
+  --secondary-foreground: hsl(215, 25%, 27%);
+  --accent: hsl(197, 71%, 73%);
+  --accent-foreground: hsl(215, 25%, 27%);
   --destructive: hsl(0, 84%, 60%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(346, 87%, 56%);
+  --ring: hsl(199, 89%, 48%);
   --radius: 0.75rem;
 
-  /* Hive brand colors */
-  --hive-red: hsl(346, 87%, 56%);
-  --hive-black: hsl(0, 0%, 0%);
-  --hive-grey: hsl(210, 11%, 18%);
-  --hive-accent: hsl(215, 16%, 47%);
-  --hive-success: hsl(142, 76%, 36%);
-  --hive-error: hsl(0, 84%, 60%);
-  --hive-warning: hsl(38, 92%, 50%);
+  /* Blue palette colors inspired by the design */
+  --blue-50: hsl(200, 100%, 97%);
+  --blue-100: hsl(200, 100%, 93%);
+  --blue-200: hsl(200, 100%, 87%);
+  --blue-300: hsl(199, 100%, 80%);
+  --blue-400: hsl(199, 89%, 68%);
+  --blue-500: hsl(199, 89%, 48%);
+  --blue-600: hsl(200, 89%, 38%);
+  --blue-700: hsl(201, 89%, 28%);
+  --blue-800: hsl(201, 83%, 21%);
+  --blue-900: hsl(202, 83%, 16%);
+  --blue-950: hsl(202, 83%, 10%);
 }
 
 .dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(346, 87%, 56%);
+  --background: hsl(202, 83%, 10%);
+  --foreground: hsl(200, 100%, 97%);
+  --muted: hsl(201, 83%, 16%);
+  --muted-foreground: hsl(200, 50%, 70%);
+  --popover: hsl(202, 83%, 10%);
+  --popover-foreground: hsl(200, 100%, 97%);
+  --card: hsl(201, 83%, 16%);
+  --card-foreground: hsl(200, 100%, 97%);
+  --border: hsl(201, 89%, 28%);
+  --input: hsl(201, 89%, 28%);
+  --primary: hsl(199, 89%, 48%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(201, 83%, 21%);
+  --secondary-foreground: hsl(200, 100%, 97%);
+  --accent: hsl(200, 89%, 38%);
+  --accent-foreground: hsl(200, 100%, 97%);
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(346, 87%, 56%);
+  --ring: hsl(199, 89%, 48%);
 }
 
 @layer base {
@@ -62,43 +68,61 @@
   }
 
   body {
-    @apply font-sans antialiased bg-gray-50 text-foreground;
+    @apply font-sans antialiased text-foreground;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--blue-50) 0%, var(--blue-100) 100%);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  .card-gradient {
+    background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%);
+  }
+
+  .card-light-gradient {
+    background: linear-gradient(135deg, var(--blue-100) 0%, var(--blue-200) 100%);
   }
 }
 
 @layer utilities {
-  .text-hive-red {
-    color: var(--hive-red);
-  }
-  .bg-hive-red {
-    background-color: var(--hive-red);
-  }
-  .text-hive-grey {
-    color: var(--hive-grey);
-  }
-  .text-hive-accent {
-    color: var(--hive-accent);
-  }
-  .text-hive-success {
-    color: var(--hive-success);
-  }
-  .bg-hive-success {
-    background-color: var(--hive-success);
-  }
-  .text-hive-error {
-    color: var(--hive-error);
-  }
-  .border-hive-red {
-    border-color: var(--hive-red);
-  }
-  .ring-hive-red {
-    --tw-ring-color: var(--hive-red);
-  }
-  .focus\:ring-hive-red:focus {
-    --tw-ring-color: var(--hive-red);
-  }
-  .focus\:border-hive-red:focus {
-    border-color: var(--hive-red);
-  }
+  /* Blue palette utilities */
+  .bg-blue-50 { background-color: var(--blue-50); }
+  .bg-blue-100 { background-color: var(--blue-100); }
+  .bg-blue-200 { background-color: var(--blue-200); }
+  .bg-blue-300 { background-color: var(--blue-300); }
+  .bg-blue-400 { background-color: var(--blue-400); }
+  .bg-blue-500 { background-color: var(--blue-500); }
+  .bg-blue-600 { background-color: var(--blue-600); }
+  .bg-blue-700 { background-color: var(--blue-700); }
+  .bg-blue-800 { background-color: var(--blue-800); }
+  .bg-blue-900 { background-color: var(--blue-900); }
+  .bg-blue-950 { background-color: var(--blue-950); }
+
+  .text-blue-50 { color: var(--blue-50); }
+  .text-blue-100 { color: var(--blue-100); }
+  .text-blue-200 { color: var(--blue-200); }
+  .text-blue-300 { color: var(--blue-300); }
+  .text-blue-400 { color: var(--blue-400); }
+  .text-blue-500 { color: var(--blue-500); }
+  .text-blue-600 { color: var(--blue-600); }
+  .text-blue-700 { color: var(--blue-700); }
+  .text-blue-800 { color: var(--blue-800); }
+  .text-blue-900 { color: var(--blue-900); }
+  .text-blue-950 { color: var(--blue-950); }
+
+  .border-blue-200 { border-color: var(--blue-200); }
+  .border-blue-300 { border-color: var(--blue-300); }
+  .border-blue-400 { border-color: var(--blue-400); }
+  .border-blue-500 { border-color: var(--blue-500); }
+
+  .ring-blue-500 { --tw-ring-color: var(--blue-500); }
+  .focus\:ring-blue-500:focus { --tw-ring-color: var(--blue-500); }
+  .focus\:border-blue-500:focus { border-color: var(--blue-500); }
+
+  .hover\:bg-blue-600:hover { background-color: var(--blue-600); }
+  .hover\:bg-blue-700:hover { background-color: var(--blue-700); }
 }

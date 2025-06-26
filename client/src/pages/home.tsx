@@ -191,10 +191,10 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-2xl bg-slate-800 border-slate-700">
-          <CardHeader className="bg-gradient-to-r from-blue-900 to-blue-800 text-white text-center rounded-t-lg">
+        <Card className="shadow-2xl bg-white border-blue-200">
+          <CardHeader className="card-gradient text-white text-center rounded-t-lg">
             <div className="flex items-center justify-center space-x-3 mb-2">
               <img 
                 src="/assets/image_1750717762447.png" 
@@ -222,7 +222,7 @@ export default function Home() {
           <CardContent className="p-6 space-y-6">
             {/* Hive Power Input */}
             <div>
-              <Label htmlFor="hivePower" className="text-sm font-medium text-slate-300 mb-2 block">
+              <Label htmlFor="hivePower" className="text-sm font-medium text-blue-700 mb-2 block">
                 Hive Power
               </Label>
               <div className="relative">
@@ -234,28 +234,28 @@ export default function Home() {
                   onChange={(e) => setHivePower(e.target.value)}
                   min="0"
                   step="0.001"
-                  className="text-lg font-medium pr-12 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500"
+                  className="text-lg font-medium pr-12 bg-blue-50 border-blue-200 text-blue-900 placeholder:text-blue-400 focus:border-blue-500 focus:ring-blue-500"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <span className="text-slate-400 font-medium">HP</span>
+                  <span className="text-blue-500 font-medium">HP</span>
                 </div>
               </div>
             </div>
 
             {/* Current HIVE Price */}
-            <div className="bg-slate-700 border border-slate-600 rounded-lg p-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-slate-300">HIVE Price</span>
+                  <span className="text-sm font-medium text-blue-700">HIVE Price</span>
                   {useCustomPrice && (
-                    <span className="text-xs bg-orange-600 text-white px-2 py-1 rounded">Custom</span>
+                    <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">Custom</span>
                   )}
                 </div>
                 <div className="flex items-center space-x-2">
                   {priceLoading ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
                   ) : priceError ? (
-                    <span className="text-red-400 text-sm">Error</span>
+                    <span className="text-red-500 text-sm">Error</span>
                   ) : isEditingPrice ? (
                     <div className="flex items-center space-x-2">
                       <Input
@@ -265,7 +265,7 @@ export default function Home() {
                         placeholder="0.000"
                         min="0"
                         step="0.001"
-                        className="w-20 h-8 text-sm text-center bg-slate-600 border-slate-500 text-white"
+                        className="w-20 h-8 text-sm text-center bg-white border-blue-300 text-blue-900"
                         autoFocus
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
@@ -279,7 +279,7 @@ export default function Home() {
                         size="sm"
                         variant="ghost"
                         onClick={handleSavePrice}
-                        className="h-8 w-8 p-0 text-green-400 hover:text-green-300 hover:bg-slate-600"
+                        className="h-8 w-8 p-0 text-green-600 hover:text-green-500 hover:bg-blue-100"
                       >
                         <Check className="h-4 w-4" />
                       </Button>
@@ -287,21 +287,21 @@ export default function Home() {
                         size="sm"
                         variant="ghost"
                         onClick={handleCancelEdit}
-                        className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-slate-600"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-400 hover:bg-blue-100"
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg font-semibold text-blue-400">
+                      <span className="text-lg font-semibold text-blue-600">
                         ${useCustomPrice ? parseFloat(customPrice).toFixed(3) : (priceData?.price.toFixed(3) || "0.000")}
                       </span>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={handleEditPrice}
-                        className="h-8 w-8 p-0 text-slate-400 hover:text-blue-400 hover:bg-slate-600"
+                        className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-100"
                         title="Edit price"
                       >
                         <Pencil className="h-4 w-4" />
@@ -312,16 +312,16 @@ export default function Home() {
               </div>
               
               {useCustomPrice && !isEditingPrice && (
-                <div className="mt-2 pt-2 border-t border-slate-600">
+                <div className="mt-2 pt-2 border-t border-blue-200">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">
+                    <span className="text-blue-600">
                       Market: ${priceData?.price.toFixed(3) || "Loading..."}
                     </span>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={handleResetToMarket}
-                      className="h-6 text-xs text-slate-400 hover:text-blue-400 hover:bg-slate-600 px-2"
+                      className="h-6 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100 px-2"
                     >
                       Use Market Price
                     </Button>
@@ -331,11 +331,11 @@ export default function Home() {
             </div>
 
             {/* Vote Value in USD */}
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg p-6 text-center shadow-lg">
+            <div className="card-gradient text-white rounded-lg p-6 text-center shadow-lg">
               <p className="text-blue-100 text-sm font-medium mb-2">Vote Value</p>
               <div className="text-3xl font-bold min-h-[2.5rem] flex items-center justify-center">
                 {calculateMutation.isPending ? (
-                  <span className="inline-block h-8 w-20 bg-blue-500 rounded animate-pulse"></span>
+                  <span className="inline-block h-8 w-20 bg-blue-400 rounded animate-pulse"></span>
                 ) : calculation ? (
                   <span className="font-mono">${calculation.voteValueUsd.toFixed(3)}</span>
                 ) : (
