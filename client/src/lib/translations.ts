@@ -19,7 +19,9 @@ export const translations = {
     priceReset: "Price Reset",
     usingCustomPrice: "Using custom HIVE price",
     usingMarketPrice: "Using live market price",
-    language: "Language"
+    language: "Language",
+    officialSite: "Official Website",
+    witnessExplorer: "Witness Block Explorer"
   },
   es: {
     title: "Calculadora de Votos de Hive",
@@ -41,7 +43,9 @@ export const translations = {
     priceReset: "Precio Restablecido",
     usingCustomPrice: "Usando precio personalizado de HIVE",
     usingMarketPrice: "Usando precio de mercado en vivo",
-    language: "Idioma"
+    language: "Idioma",
+    officialSite: "Sitio Oficial",
+    witnessExplorer: "Explorador de Testigos"
   }
 };
 

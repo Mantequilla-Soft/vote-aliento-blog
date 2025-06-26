@@ -357,7 +357,16 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-700 underline transition-colors font-medium text-xs"
               >
-                Aliento Project
+                Official Website
+              </a>
+              <br />
+              <a 
+                href="https://info.aliento.blog" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-700 underline transition-colors font-medium text-xs"
+              >
+                Witness Block Explorer
               </a>
             </div>
           </CardContent>
