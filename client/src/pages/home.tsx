@@ -242,7 +242,7 @@ export default function Home() {
           <CardContent className="p-6 space-y-6">
             {/* Hive Power Input */}
             <div>
-              <Label htmlFor="hivePower" className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2 block">
+              <Label htmlFor="hivePower" className="text-sm font-medium text-blue-700 dark:text-blue-800 mb-2 block">
                 {t("hivePower")}
               </Label>
               <div className="relative">
@@ -332,16 +332,16 @@ export default function Home() {
               </div>
               
               {useCustomPrice && !isEditingPrice && (
-                <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-800">
+                <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-300">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-blue-600 dark:text-blue-400">
+                    <span className="text-blue-600 dark:text-blue-800">
                       {t("market")}: ${priceData?.price.toFixed(3) || t("loading")}
                     </span>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={handleResetToMarket}
-                      className="h-6 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 px-2"
+                      className="h-6 text-xs text-blue-600 dark:text-blue-800 hover:text-blue-700 dark:hover:text-blue-900 hover:bg-blue-100 dark:hover:bg-blue-200 px-2"
                     >
                       {t("useMarketPrice")}
                     </Button>
@@ -370,7 +370,7 @@ export default function Home() {
                 href="https://aliento.blog" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors font-medium text-xs"
+                className="text-blue-500 dark:text-blue-700 hover:text-blue-700 dark:hover:text-blue-800 underline transition-colors font-medium text-xs"
               >
                  {t("officialSite")}
               </a>
@@ -379,7 +379,7 @@ export default function Home() {
                 href="https://info.aliento.blog" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors font-medium text-xs"
+                className="text-blue-500 dark:text-blue-700 hover:text-blue-700 dark:hover:text-blue-800 underline transition-colors font-medium text-xs"
               >
                 {t("witnessExplorer")}
               </a>
