@@ -208,7 +208,7 @@ export default function Home() {
                 size="sm"
                 variant="ghost"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="h-7 w-7 p-0 text-blue-100 hover:text-white hover:bg-blue-600"
+                className="h-7 w-7 p-0 text-white dark:text-white hover:text-white hover:bg-blue-600"
                 title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               >
                 {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
@@ -217,7 +217,7 @@ export default function Home() {
                 size="sm"
                 variant="ghost"
                 onClick={toggleLanguage}
-                className="h-7 w-7 p-0 text-blue-100 hover:text-white hover:bg-blue-600"
+                className="h-7 w-7 p-0 text-white dark:text-white hover:text-white hover:bg-blue-600"
                 title={t("language")}
               >
                 <Globe className="h-3.5 w-3.5" />

@@ -119,7 +119,10 @@ The application follows a monorepo structure with clear separation between clien
 - Added dark theme support with theme toggle button (Sun/Moon icon) in header
 - Dark theme uses slate color palette with improved contrast over original blue scheme
 - Theme preference persists in localStorage with "hive-calculator-theme" key
-- Dark mode implementation needs further refinement per user feedback
+- Dark theme implementation completed with far-right color palette (#063248, #0A4F70, #046088)
+- Fixed text visibility issues: subtitle and vote value text now white in dark mode
+- Improved toggle button positioning to prevent title overlap with smaller 28px buttons
+- Enhanced toggle button visibility with white text color for better contrast
 - Added custom favicon with Hive-themed circular logo featuring blue and purple design
 - Enhanced HTML with proper meta tags, title, and Open Graph tags for social sharing
 
