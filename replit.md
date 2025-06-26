@@ -112,6 +112,9 @@ The application follows a monorepo structure with clear separation between clien
 - Enhanced server-side API error handling with proper validation for blockchain data responses
 - Fixed blinking vote value issue when using custom prices by optimizing React hook dependencies
 - Improved memory management and prevented unnecessary API calls through better caching logic
+- Updated visual design with beautiful blue color palette and Inter font inspired by modern UI designs
+- Implemented English/Spanish translation system with toggle button in header
+- Moved attribution link from header to bottom of interface for cleaner design
 
 ## User Preferences
 

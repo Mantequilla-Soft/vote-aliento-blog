@@ -219,17 +219,6 @@ export default function Home() {
               />
               <h1 className="text-xl font-semibold">{t("title")}</h1>
             </div>
-            <p className="text-blue-100 text-xs">
-              {t("subtitle")} {' '}
-              <a 
-                href="https://aliento.blog" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-200 hover:text-white underline transition-colors"
-              >
-                Aliento Project
-              </a>
-            </p>
           </CardHeader>
 
           <CardContent className="p-6 space-y-6">
@@ -355,6 +344,21 @@ export default function Home() {
                   <span className="font-mono">$0.000</span>
                 )}
               </div>
+            </div>
+
+            {/* Attribution Link */}
+            <div className="text-center">
+              <p className="text-blue-600 text-xs">
+                {t("subtitle")} {' '}
+                <a 
+                  href="https://aliento.blog" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:text-blue-700 underline transition-colors font-medium"
+                >
+                  Aliento Project
+                </a>
+              </p>
             </div>
           </CardContent>
         </Card>
