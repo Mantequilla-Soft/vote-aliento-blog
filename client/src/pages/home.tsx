@@ -263,12 +263,12 @@ export default function Home() {
             </div>
 
             {/* Current HIVE Price */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-blue-700">{t("hivePrice")}</span>
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{t("hivePrice")}</span>
                   {useCustomPrice && (
-                    <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">{t("custom")}</span>
+                    <span className="text-xs bg-blue-500 dark:bg-blue-600 text-white px-2 py-1 rounded">{t("custom")}</span>
                   )}
                 </div>
                 <div className="flex items-center space-x-2">
@@ -285,7 +285,7 @@ export default function Home() {
                         placeholder="0.000"
                         min="0"
                         step="0.001"
-                        className="w-20 h-8 text-sm text-center bg-white border-blue-300 text-blue-900"
+                        className="w-20 h-8 text-sm text-center bg-white dark:bg-blue-950 border-blue-300 dark:border-blue-700 text-blue-900 dark:text-blue-100"
                         autoFocus
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
@@ -314,14 +314,14 @@ export default function Home() {
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg font-semibold text-blue-600">
+                      <span className="text-lg font-semibold text-blue-600 dark:text-blue-400">
                         ${useCustomPrice ? parseFloat(customPrice).toFixed(3) : (priceData?.price.toFixed(3) || "0.000")}
                       </span>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={handleEditPrice}
-                        className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-100"
+                        className="h-8 w-8 p-0 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
                         title={t("editPrice")}
                       >
                         <Pencil className="h-4 w-4" />
@@ -332,16 +332,16 @@ export default function Home() {
               </div>
               
               {useCustomPrice && !isEditingPrice && (
-                <div className="mt-2 pt-2 border-t border-blue-200">
+                <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-800">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-blue-600">
+                    <span className="text-blue-600 dark:text-blue-400">
                       {t("market")}: ${priceData?.price.toFixed(3) || t("loading")}
                     </span>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={handleResetToMarket}
-                      className="h-6 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100 px-2"
+                      className="h-6 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 px-2"
                     >
                       {t("useMarketPrice")}
                     </Button>
@@ -370,7 +370,7 @@ export default function Home() {
                 href="https://aliento.blog" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-700 underline transition-colors font-medium text-xs"
+                className="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors font-medium text-xs"
               >
                  {t("officialSite")}
               </a>
@@ -379,7 +379,7 @@ export default function Home() {
                 href="https://info.aliento.blog" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:text-blue-700 underline transition-colors font-medium text-xs"
+                className="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors font-medium text-xs"
               >
                 {t("witnessExplorer")}
               </a>

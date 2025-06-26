@@ -116,6 +116,10 @@ The application follows a monorepo structure with clear separation between clien
 - Implemented English/Spanish translation system with toggle button in header
 - Moved attribution link from header to bottom of interface for cleaner design
 - Replaced translation toggle icon from gear/settings to Globe icon for better user intuition
+- Added dark theme support with theme toggle button (Sun/Moon icon) in header
+- Dark theme uses same blue color palette optimized for darker backgrounds
+- Theme preference persists in localStorage with "hive-calculator-theme" key
+- Dark mode includes enhanced contrast and readability for all UI components
 
 ## User Preferences
 
