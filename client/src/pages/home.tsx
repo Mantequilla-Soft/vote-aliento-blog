@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Pencil, Check, X, Languages } from "lucide-react";
+import { Pencil, Check, X, Globe } from "lucide-react";
 
 interface HivePriceData {
   price: number;
@@ -205,7 +205,7 @@ export default function Home() {
                 className="h-8 w-8 p-0 text-blue-100 hover:text-white hover:bg-blue-600"
                 title={t("language")}
               >
-                <Languages className="h-4 w-4" />
+                <Globe className="h-4 w-4" />
               </Button>
             </div>
             <div className="flex items-center justify-center space-x-3 mb-2">
@@ -357,7 +357,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-700 underline transition-colors font-medium text-xs"
               >
-                Official Website
+                 {t("officialSite")}
               </a>
               <br />
               <a 
@@ -366,7 +366,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-700 underline transition-colors font-medium text-xs"
               >
-                Witness Block Explorer
+                {t("witnessExplorer")}
               </a>
             </div>
           </CardContent>

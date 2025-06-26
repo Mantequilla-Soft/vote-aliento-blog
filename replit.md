@@ -115,6 +115,7 @@ The application follows a monorepo structure with clear separation between clien
 - Updated visual design with beautiful blue color palette and Inter font inspired by modern UI designs
 - Implemented English/Spanish translation system with toggle button in header
 - Moved attribution link from header to bottom of interface for cleaner design
+- Replaced translation toggle icon from gear/settings to Globe icon for better user intuition
 
 ## User Preferences
 
