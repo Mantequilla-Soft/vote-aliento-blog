@@ -201,7 +201,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-2xl bg-white dark:bg-card border-blue-200 dark:border-border">
+        <Card className="shadow-2xl bg-white dark:bg-card border-blue-200 dark:border-blue-200 dark:shadow-blue-500/10">
           <CardHeader className="card-gradient text-white text-center rounded-t-lg relative">
             <div className="absolute top-4 right-4 flex space-x-2">
               <Button
@@ -254,7 +254,7 @@ export default function Home() {
                   onChange={(e) => setHivePower(e.target.value)}
                   min="0"
                   step="0.001"
-                  className="text-lg font-medium pr-12 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100 placeholder:text-blue-400 dark:placeholder:text-blue-600 focus:border-blue-500 focus:ring-blue-500"
+                  className="text-lg font-medium pr-12 bg-blue-50 dark:bg-blue-100 border-blue-200 dark:border-blue-200 text-blue-900 dark:text-blue-950 placeholder:text-blue-400 dark:placeholder:text-blue-400 focus:border-blue-500 focus:ring-blue-500"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                   <span className="text-blue-500 dark:text-blue-400 font-medium">HP</span>
@@ -263,12 +263,12 @@ export default function Home() {
             </div>
 
             {/* Current HIVE Price */}
-            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="bg-blue-50 dark:bg-blue-100 border border-blue-200 dark:border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{t("hivePrice")}</span>
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-800">{t("hivePrice")}</span>
                   {useCustomPrice && (
-                    <span className="text-xs bg-blue-500 dark:bg-blue-600 text-white px-2 py-1 rounded">{t("custom")}</span>
+                    <span className="text-xs bg-blue-500 dark:bg-blue-700 text-white px-2 py-1 rounded">{t("custom")}</span>
                   )}
                 </div>
                 <div className="flex items-center space-x-2">
@@ -285,7 +285,7 @@ export default function Home() {
                         placeholder="0.000"
                         min="0"
                         step="0.001"
-                        className="w-20 h-8 text-sm text-center bg-white dark:bg-blue-950 border-blue-300 dark:border-blue-700 text-blue-900 dark:text-blue-100"
+                        className="w-20 h-8 text-sm text-center bg-white dark:bg-blue-200 border-blue-300 dark:border-blue-300 text-blue-900 dark:text-blue-900"
                         autoFocus
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
@@ -314,14 +314,14 @@ export default function Home() {
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+                      <span className="text-lg font-semibold text-blue-600 dark:text-blue-800">
                         ${useCustomPrice ? parseFloat(customPrice).toFixed(3) : (priceData?.price.toFixed(3) || "0.000")}
                       </span>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={handleEditPrice}
-                        className="h-8 w-8 p-0 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900"
+                        className="h-8 w-8 p-0 text-blue-500 dark:text-blue-700 hover:text-blue-600 dark:hover:text-blue-800 hover:bg-blue-100 dark:hover:bg-blue-200"
                         title={t("editPrice")}
                       >
                         <Pencil className="h-4 w-4" />
