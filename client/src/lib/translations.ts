@@ -10,7 +10,7 @@ export const translations = {
     useMarketPrice: "Use Market Price",
     editPrice: "Edit price",
     error: "Error",
-    enterHP: "Enter HP to estimate vote value",
+    enterHP: "Enter HP to calculate the vote value",
     loading: "Loading...",
     calculationFailed: "Calculation Failed",
     invalidPrice: "Invalid Price",
@@ -21,7 +21,7 @@ export const translations = {
     usingMarketPrice: "Using live market price",
     language: "Language",
     officialSite: "Official Website",
-    witnessExplorer: "Witness Block Explorer",
+    witnessExplorer: "Witness Block Explorer"
   },
   es: {
     title: "Calculadora de Votos de Hive",
@@ -34,7 +34,7 @@ export const translations = {
     useMarketPrice: "Usar Precio de Mercado",
     editPrice: "Editar precio",
     error: "Error",
-    enterHP: "Ingresa el HP para estimar el valor del voto",
+    enterHP: "Introduce el HP para estimar el valor del voto",
     loading: "Cargando...",
     calculationFailed: "Cálculo Fallido",
     invalidPrice: "Precio Inválido",
