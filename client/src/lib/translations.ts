@@ -21,7 +21,7 @@ export const translations = {
     usingMarketPrice: "Using live market price",
     language: "Language",
     officialSite: "Official Website",
-    witnessExplorer: "Witness Block Explorer"
+    witnessExplorer: "Witness Block Explorer",
   },
   es: {
     title: "Calculadora de Votos de Hive",
