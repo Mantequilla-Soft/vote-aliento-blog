@@ -41,37 +41,37 @@
 }
 
 .dark {
-  --background: hsl(222, 84%, 5%);
+  --background: hsl(202, 69%, 14%);
   --foreground: hsl(210, 40%, 98%);
-  --muted: hsl(217, 32%, 17%);
+  --muted: hsl(202, 69%, 18%);
   --muted-foreground: hsl(215, 20%, 65%);
-  --popover: hsl(222, 84%, 5%);
+  --popover: hsl(202, 69%, 14%);
   --popover-foreground: hsl(210, 40%, 98%);
-  --card: hsl(222, 47%, 11%);
+  --card: hsl(202, 69%, 18%);
   --card-foreground: hsl(210, 40%, 98%);
-  --border: hsl(217, 32%, 17%);
-  --input: hsl(217, 32%, 17%);
+  --border: hsl(202, 69%, 22%);
+  --input: hsl(202, 69%, 22%);
   --primary: hsl(210, 40%, 98%);
-  --primary-foreground: hsl(222, 84%, 5%);
-  --secondary: hsl(217, 32%, 17%);
+  --primary-foreground: hsl(202, 69%, 14%);
+  --secondary: hsl(202, 69%, 22%);
   --secondary-foreground: hsl(210, 40%, 98%);
-  --accent: hsl(217, 32%, 17%);
+  --accent: hsl(202, 69%, 22%);
   --accent-foreground: hsl(210, 40%, 98%);
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(210, 40%, 98%);
-  --ring: hsl(212, 72%, 59%);
+  --ring: hsl(199, 89%, 48%);
 
-  /* Enhanced dark theme blue palette with better contrast */
-  --blue-50: hsl(222, 47%, 11%);
-  --blue-100: hsl(217, 32%, 17%);
-  --blue-200: hsl(215, 28%, 25%);
-  --blue-300: hsl(212, 72%, 59%);
-  --blue-400: hsl(212, 72%, 65%);
-  --blue-500: hsl(212, 72%, 70%);
-  --blue-600: hsl(212, 85%, 75%);
-  --blue-700: hsl(212, 85%, 80%);
-  --blue-800: hsl(212, 85%, 85%);
-  --blue-900: hsl(212, 85%, 90%);
+  /* Dark theme using the far-right colors from the palette (#063248, #0A4F70, #046088) */
+  --blue-50: hsl(202, 69%, 18%);
+  --blue-100: hsl(202, 69%, 22%);
+  --blue-200: hsl(202, 69%, 28%);
+  --blue-300: hsl(202, 69%, 35%);
+  --blue-400: hsl(199, 89%, 48%);
+  --blue-500: hsl(199, 89%, 55%);
+  --blue-600: hsl(199, 89%, 65%);
+  --blue-700: hsl(199, 89%, 75%);
+  --blue-800: hsl(199, 89%, 85%);
+  --blue-900: hsl(199, 89%, 90%);
   --blue-950: hsl(210, 40%, 98%);
 }
 
@@ -88,7 +88,7 @@
   }
 
   .dark body {
-    background: linear-gradient(135deg, hsl(222, 84%, 4%) 0%, hsl(217, 32%, 8%) 100%);
+    background: linear-gradient(135deg, hsl(202, 69%, 12%) 0%, hsl(202, 69%, 16%) 100%);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -101,8 +101,8 @@
   }
 
   .dark .card-gradient {
-    background: linear-gradient(135deg, hsl(212, 72%, 25%) 0%, hsl(212, 72%, 35%) 100%);
-    border-bottom: 1px solid hsl(212, 72%, 45%);
+    background: linear-gradient(135deg, hsl(202, 69%, 25%) 0%, hsl(202, 69%, 35%) 100%);
+    border-bottom: 1px solid hsl(202, 69%, 45%);
   }
 
   .card-light-gradient {

@@ -201,7 +201,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-2xl bg-white dark:bg-card border-blue-200 dark:border-blue-200 dark:shadow-blue-500/10">
+        <Card className="shadow-2xl bg-white dark:bg-card border-blue-200 dark:border-blue-100 dark:shadow-blue-500/10">
           <CardHeader className="card-gradient text-white text-center rounded-t-lg relative">
             <div className="absolute top-4 right-4 flex space-x-2">
               <Button
@@ -234,7 +234,7 @@ export default function Home() {
               />
               <h1 className="text-xl font-semibold">{t("title")}</h1>
             </div>
-            <p className="text-blue-100 text-xs">
+            <p className="text-blue-100 dark:text-blue-200 text-xs">
               {t("subtitle")}
             </p>
           </CardHeader>
@@ -352,7 +352,7 @@ export default function Home() {
 
             {/* Vote Value in USD */}
             <div className="card-gradient text-white rounded-lg p-6 text-center shadow-lg">
-              <p className="text-blue-100 text-sm font-medium mb-2">{t("voteValue")}</p>
+              <p className="text-blue-100 dark:text-blue-200 text-sm font-medium mb-2">{t("voteValue")}</p>
               <div className="text-3xl font-bold min-h-[2.5rem] flex items-center justify-center">
                 {calculateMutation.isPending ? (
                   <span className="inline-block h-8 w-20 bg-blue-400 rounded animate-pulse"></span>
