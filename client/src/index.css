@@ -60,6 +60,19 @@
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(0, 0%, 98%);
   --ring: hsl(199, 89%, 48%);
+
+  /* Dark theme blue palette */
+  --blue-50: hsl(202, 83%, 16%);
+  --blue-100: hsl(201, 83%, 21%);
+  --blue-200: hsl(201, 89%, 28%);
+  --blue-300: hsl(200, 89%, 38%);
+  --blue-400: hsl(199, 89%, 48%);
+  --blue-500: hsl(199, 89%, 58%);
+  --blue-600: hsl(199, 100%, 68%);
+  --blue-700: hsl(199, 100%, 78%);
+  --blue-800: hsl(200, 100%, 87%);
+  --blue-900: hsl(200, 100%, 93%);
+  --blue-950: hsl(200, 100%, 97%);
 }
 
 @layer base {
@@ -72,6 +85,10 @@
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, var(--blue-50) 0%, var(--blue-100) 100%);
     min-height: 100vh;
+  }
+
+  .dark body {
+    background: linear-gradient(135deg, hsl(202, 83%, 8%) 0%, hsl(201, 83%, 12%) 100%);
   }
 
   h1, h2, h3, h4, h5, h6 {

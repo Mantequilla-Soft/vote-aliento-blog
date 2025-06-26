@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Pencil, Check, X, Globe } from "lucide-react";
+import { useTheme } from "@/components/theme-provider";
+import { Pencil, Check, X, Globe, Sun, Moon } from "lucide-react";
 
 import logoalientosinfondo from "@assets/logoalientosinfondo.png";
 
@@ -35,6 +36,7 @@ export default function Home() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, language, toggleLanguage } = useTranslation();
+  const { theme, setTheme } = useTheme();
 
   // Fetch current HIVE price
   const { data: priceData, isLoading: priceLoading, error: priceError } = useQuery<HivePriceData>({
@@ -199,9 +201,18 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-2xl bg-white border-blue-200">
+        <Card className="shadow-2xl bg-white dark:bg-card border-blue-200 dark:border-border">
           <CardHeader className="card-gradient text-white text-center rounded-t-lg relative">
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-4 right-4 flex space-x-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="h-8 w-8 p-0 text-blue-100 hover:text-white hover:bg-blue-600"
+                title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
               <Button
                 size="sm"
                 variant="ghost"
@@ -231,7 +242,7 @@ export default function Home() {
           <CardContent className="p-6 space-y-6">
             {/* Hive Power Input */}
             <div>
-              <Label htmlFor="hivePower" className="text-sm font-medium text-blue-700 mb-2 block">
+              <Label htmlFor="hivePower" className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2 block">
                 {t("hivePower")}
               </Label>
               <div className="relative">
@@ -243,10 +254,10 @@ export default function Home() {
                   onChange={(e) => setHivePower(e.target.value)}
                   min="0"
                   step="0.001"
-                  className="text-lg font-medium pr-12 bg-blue-50 border-blue-200 text-blue-900 placeholder:text-blue-400 focus:border-blue-500 focus:ring-blue-500"
+                  className="text-lg font-medium pr-12 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100 placeholder:text-blue-400 dark:placeholder:text-blue-600 focus:border-blue-500 focus:ring-blue-500"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <span className="text-blue-500 font-medium">HP</span>
+                  <span className="text-blue-500 dark:text-blue-400 font-medium">HP</span>
                 </div>
               </div>
             </div>
