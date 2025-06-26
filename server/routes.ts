@@ -134,14 +134,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error("Failed to fetch blockchain data");
       }
 
-      const globalProps = (await globalPropsResponse.json()).result;
-      const rewardFund = (await rewardFundResponse.json()).result;
+      const globalPropsData = await globalPropsResponse.json();
+      const rewardFundData = await rewardFundResponse.json();
+
+      // Validate API responses
+      if (!globalPropsData.result || !rewardFundData.result) {
+        throw new Error("Invalid blockchain data received");
+      }
+
+      const globalProps = globalPropsData.result;
+      const rewardFund = rewardFundData.result;
+
+      // Validate required fields exist
+      if (!globalProps.total_vesting_fund_hive || !globalProps.total_vesting_shares ||
+          !rewardFund.reward_balance || !rewardFund.recent_claims) {
+        throw new Error("Missing required blockchain parameters");
+      }
 
       // Extract blockchain parameters
       const totalVestingFundHive = parseFloat(globalProps.total_vesting_fund_hive.split(' ')[0]);
       const totalVestingShares = parseFloat(globalProps.total_vesting_shares.split(' ')[0]);
       const rewardBalance = parseFloat(rewardFund.reward_balance.split(' ')[0]);
       const recentClaims = parseFloat(rewardFund.recent_claims);
+
+      // Validate parsed numbers
+      if (isNaN(totalVestingFundHive) || isNaN(totalVestingShares) || 
+          isNaN(rewardBalance) || isNaN(recentClaims) ||
+          totalVestingFundHive <= 0 || totalVestingShares <= 0 || 
+          rewardBalance <= 0 || recentClaims <= 0) {
+        throw new Error("Invalid blockchain parameter values");
+      }
 
       // Get current HIVE price - use custom price if provided, otherwise fetch from witness feed
       let currentPrice = 0.20;

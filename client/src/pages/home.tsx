@@ -95,8 +95,6 @@ export default function Home() {
     },
   });
 
-
-
   // Calculate vote value when Hive Power changes with caching and debouncing
   const debouncedCalculate = useCallback((hp: number) => {
     // Create cache key that includes custom price state
