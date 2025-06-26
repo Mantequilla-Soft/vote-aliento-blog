@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Pencil, Check, X, Globe } from "lucide-react";
 
+import logoalientosinfondo from "@assets/logoalientosinfondo.png";
+
 interface HivePriceData {
   price: number;
   timestamp: string;
@@ -212,7 +214,7 @@ export default function Home() {
             </div>
             <div className="flex items-center justify-center space-x-3 mb-2">
               <img 
-                src="/assets/image_1750717762447.png" 
+                src={logoalientosinfondo} 
                 alt="Aliento Project Logo" 
                 className="w-8 h-8 rounded-full"
                 onError={(e) => {
