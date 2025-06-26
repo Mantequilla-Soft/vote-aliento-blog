@@ -40,46 +40,49 @@ export default function Home() {
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
+  // Create a stable mutation function to prevent dependency issues
+  const performCalculation = useCallback(async (hp: number) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    try {
+      const requestBody: any = { hivePower: hp };
+      
+      // Include custom price if user has set one
+      if (useCustomPrice && customPrice) {
+        const price = parseFloat(customPrice);
+        if (!isNaN(price) && price > 0) {
+          requestBody.customPrice = price;
+        }
+      }
+      
+      const response = await fetch("/api/calculate-vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: "Network error" }));
+        throw new Error(error.message || `HTTP ${response.status}: Failed to calculate vote value`);
+      }
+      
+      return response.json() as Promise<VoteCalculationResult>;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error("Calculation request timed out. Please try again.");
+      }
+      throw error;
+    }
+  }, [useCustomPrice, customPrice]);
+
   // Calculate vote value mutation with query cache integration
   const calculateMutation = useMutation({
-    mutationFn: async (hp: number) => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-      
-      try {
-        const requestBody: any = { hivePower: hp };
-        
-        // Include custom price if user has set one
-        if (useCustomPrice && customPrice) {
-          const price = parseFloat(customPrice);
-          if (!isNaN(price) && price > 0) {
-            requestBody.customPrice = price;
-          }
-        }
-        
-        const response = await fetch("/api/calculate-vote", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody),
-          signal: controller.signal,
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          const error = await response.json().catch(() => ({ message: "Network error" }));
-          throw new Error(error.message || `HTTP ${response.status}: Failed to calculate vote value`);
-        }
-        
-        return response.json() as Promise<VoteCalculationResult>;
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error("Calculation request timed out. Please try again.");
-        }
-        throw error;
-      }
-    },
+    mutationFn: performCalculation,
     onSuccess: (data) => {
       setCalculation(data);
       // Cache the calculation result with HP as key
@@ -96,22 +99,21 @@ export default function Home() {
       setCalculation(null);
     },
   });
-
-  // Create a stable reference for the price key to prevent unnecessary recalculations
-  const priceKey = useCustomPrice ? customPrice : "market";
   
   // Calculate vote value when Hive Power changes with caching and debouncing
   const debouncedCalculate = useCallback((hp: number) => {
     // Only trigger new calculation if we don't have a result for this exact combination
+    const currentPrice = useCustomPrice ? parseFloat(customPrice) : priceData?.price;
+    
     if (calculation && 
         calculation.hivePower === hp && 
-        ((useCustomPrice && Math.abs(calculation.hivePrice - parseFloat(customPrice)) < 0.001) ||
-         (!useCustomPrice && priceData && Math.abs(calculation.hivePrice - priceData.price) < 0.001))) {
+        currentPrice && 
+        Math.abs(calculation.hivePrice - currentPrice) < 0.001) {
       return; // Skip calculation if we already have the right result
     }
     
     calculateMutation.mutate(hp);
-  }, [calculation, useCustomPrice, customPrice, priceData, calculateMutation.mutate]);
+  }, [calculation, useCustomPrice, customPrice, priceData?.price, calculateMutation]);
 
   // Helper function to recalculate with current HP
   const recalculateWithCurrentHP = useCallback(() => {

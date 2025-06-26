@@ -137,9 +137,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const globalPropsData = await globalPropsResponse.json();
       const rewardFundData = await rewardFundResponse.json();
 
-      // Validate API responses
+      // Enhanced API response validation
+      if (!globalPropsData || globalPropsData.error) {
+        throw new Error(`Global properties API error: ${globalPropsData?.error?.message || 'Unknown error'}`);
+      }
+      if (!rewardFundData || rewardFundData.error) {
+        throw new Error(`Reward fund API error: ${rewardFundData?.error?.message || 'Unknown error'}`);
+      }
       if (!globalPropsData.result || !rewardFundData.result) {
-        throw new Error("Invalid blockchain data received");
+        throw new Error("Invalid blockchain data received - missing result fields");
       }
 
       const globalProps = globalPropsData.result;
@@ -151,11 +157,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error("Missing required blockchain parameters");
       }
 
-      // Extract blockchain parameters
-      const totalVestingFundHive = parseFloat(globalProps.total_vesting_fund_hive.split(' ')[0]);
-      const totalVestingShares = parseFloat(globalProps.total_vesting_shares.split(' ')[0]);
-      const rewardBalance = parseFloat(rewardFund.reward_balance.split(' ')[0]);
-      const recentClaims = parseFloat(rewardFund.recent_claims);
+      // Extract blockchain parameters with safe parsing
+      const totalVestingFundHive = parseFloat((globalProps.total_vesting_fund_hive || '0').toString().split(' ')[0]);
+      const totalVestingShares = parseFloat((globalProps.total_vesting_shares || '0').toString().split(' ')[0]);
+      const rewardBalance = parseFloat((rewardFund.reward_balance || '0').toString().split(' ')[0]);
+      const recentClaims = parseFloat(rewardFund.recent_claims || '0');
 
       // Validate parsed numbers
       if (isNaN(totalVestingFundHive) || isNaN(totalVestingShares) || 
