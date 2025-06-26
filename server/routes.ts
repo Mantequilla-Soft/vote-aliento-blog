@@ -143,18 +143,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rewardBalance = parseFloat(rewardFund.reward_balance.split(' ')[0]);
       const recentClaims = parseFloat(rewardFund.recent_claims);
 
-      // Get current HIVE price from witness price feed
+      // Get current HIVE price - use custom price if provided, otherwise fetch from witness feed
       let currentPrice = 0.20;
-      try {
-        const priceResponse = await fetchWithTimeout("https://api.syncad.com/hafbe-api/witnesses?limit=1", {}, 5000);
-        if (priceResponse.ok) {
-          const priceData = await priceResponse.json();
-          if (priceData?.witnesses?.[0]?.price_feed > 0) {
-            currentPrice = priceData.witnesses[0].price_feed;
+      
+      if (customPrice && typeof customPrice === 'number' && customPrice > 0) {
+        // Use custom price provided by user
+        currentPrice = customPrice;
+      } else {
+        // Fetch from witness price feed
+        try {
+          const priceResponse = await fetchWithTimeout("https://api.syncad.com/hafbe-api/witnesses?limit=1", {}, 5000);
+          if (priceResponse.ok) {
+            const priceData = await priceResponse.json();
+            if (priceData?.witnesses?.[0]?.price_feed > 0) {
+              currentPrice = priceData.witnesses[0].price_feed;
+            }
           }
+        } catch (error) {
+          // Use fallback price if witness feed fails
         }
-      } catch (error) {
-        // Use fallback price if witness feed fails
       }
 
       // ACCURATE HIVE VOTE CALCULATION
@@ -190,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         Recent Claims: ${recentClaims.toFixed(0)}
         Vote Value (HIVE): ${voteValueHive.toFixed(6)}
         Vote Value (USD): ${voteValueUsd.toFixed(6)}
-        HIVE Price: $${currentPrice.toFixed(3)}`);
+        HIVE Price: $${currentPrice.toFixed(3)}${customPrice ? ' (CUSTOM)' : ' (MARKET)'}`);
       }
 
       res.json({
