@@ -259,16 +259,16 @@ export default function Home() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-blue-700">HIVE Price</span>
+                  <span className="text-sm font-medium text-blue-700">{t("hivePrice")}</span>
                   {useCustomPrice && (
-                    <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">Custom</span>
+                    <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">{t("custom")}</span>
                   )}
                 </div>
                 <div className="flex items-center space-x-2">
                   {priceLoading ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
                   ) : priceError ? (
-                    <span className="text-red-500 text-sm">Error</span>
+                    <span className="text-red-500 text-sm">{t("error")}</span>
                   ) : isEditingPrice ? (
                     <div className="flex items-center space-x-2">
                       <Input
@@ -315,7 +315,7 @@ export default function Home() {
                         variant="ghost"
                         onClick={handleEditPrice}
                         className="h-8 w-8 p-0 text-blue-500 hover:text-blue-600 hover:bg-blue-100"
-                        title="Edit price"
+                        title={t("editPrice")}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -328,7 +328,7 @@ export default function Home() {
                 <div className="mt-2 pt-2 border-t border-blue-200">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-blue-600">
-                      Market: ${priceData?.price.toFixed(3) || "Loading..."}
+                      {t("market")}: ${priceData?.price.toFixed(3) || t("loading")}
                     </span>
                     <Button
                       size="sm"
@@ -336,7 +336,7 @@ export default function Home() {
                       onClick={handleResetToMarket}
                       className="h-6 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100 px-2"
                     >
-                      Use Market Price
+                      {t("useMarketPrice")}
                     </Button>
                   </div>
                 </div>
@@ -345,7 +345,7 @@ export default function Home() {
 
             {/* Vote Value in USD */}
             <div className="card-gradient text-white rounded-lg p-6 text-center shadow-lg">
-              <p className="text-blue-100 text-sm font-medium mb-2">Vote Value</p>
+              <p className="text-blue-100 text-sm font-medium mb-2">{t("voteValue")}</p>
               <div className="text-3xl font-bold min-h-[2.5rem] flex items-center justify-center">
                 {calculateMutation.isPending ? (
                   <span className="inline-block h-8 w-20 bg-blue-400 rounded animate-pulse"></span>
