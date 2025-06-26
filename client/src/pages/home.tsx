@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Check, X } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
+import { Pencil, Check, X, Languages } from "lucide-react";
 
 interface HivePriceData {
   price: number;
@@ -31,6 +32,7 @@ export default function Home() {
   const [useCustomPrice, setUseCustomPrice] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t, language, toggleLanguage } = useTranslation();
 
   // Fetch current HIVE price
   const { data: priceData, isLoading: priceLoading, error: priceError } = useQuery<HivePriceData>({
@@ -86,7 +88,7 @@ export default function Home() {
     onError: (error) => {
       console.error("Vote calculation error:", error);
       toast({
-        title: "Calculation Failed",
+        title: t("calculationFailed"),
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
@@ -130,8 +132,8 @@ export default function Home() {
     const price = parseFloat(customPrice);
     if (isNaN(price) || price <= 0) {
       toast({
-        title: "Invalid Price",
-        description: "Please enter a valid price greater than 0",
+        title: t("invalidPrice"),
+        description: t("invalidPriceDesc"),
         variant: "destructive",
       });
       return;
@@ -144,13 +146,13 @@ export default function Home() {
     queryClient.removeQueries({ queryKey: ["/api/calculate-vote"] });
     
     toast({
-      title: "Price Updated",
-      description: `Using custom HIVE price: $${price.toFixed(3)}`,
+      title: t("priceUpdated"),
+      description: `${t("usingCustomPrice")}: $${price.toFixed(3)}`,
     });
     
     // Recalculate with new price
     recalculateWithCurrentHP();
-  }, [customPrice, toast, queryClient, recalculateWithCurrentHP]);
+  }, [customPrice, toast, queryClient, recalculateWithCurrentHP, t]);
 
   const handleCancelEdit = useCallback(() => {
     setIsEditingPrice(false);
@@ -166,13 +168,13 @@ export default function Home() {
     queryClient.removeQueries({ queryKey: ["/api/calculate-vote"] });
     
     toast({
-      title: "Price Reset",
-      description: "Using live market price",
+      title: t("priceReset"),
+      description: t("usingMarketPrice"),
     });
     
     // Recalculate with market price
     recalculateWithCurrentHP();
-  }, [toast, queryClient, recalculateWithCurrentHP]);
+  }, [toast, queryClient, recalculateWithCurrentHP, t]);
 
   useEffect(() => {
     const hp = parseFloat(hivePower);
@@ -194,7 +196,18 @@ export default function Home() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-2xl bg-white border-blue-200">
-          <CardHeader className="card-gradient text-white text-center rounded-t-lg">
+          <CardHeader className="card-gradient text-white text-center rounded-t-lg relative">
+            <div className="absolute top-4 right-4">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={toggleLanguage}
+                className="h-8 w-8 p-0 text-blue-100 hover:text-white hover:bg-blue-600"
+                title={t("language")}
+              >
+                <Languages className="h-4 w-4" />
+              </Button>
+            </div>
             <div className="flex items-center justify-center space-x-3 mb-2">
               <img 
                 src="/assets/image_1750717762447.png" 
@@ -204,10 +217,10 @@ export default function Home() {
                   e.currentTarget.style.display = 'none';
                 }}
               />
-              <h1 className="text-xl font-semibold">Hive Upvote Calculator</h1>
+              <h1 className="text-xl font-semibold">{t("title")}</h1>
             </div>
             <p className="text-blue-100 text-xs">
-              Built by the {' '}
+              {t("subtitle")} {' '}
               <a 
                 href="https://aliento.blog" 
                 target="_blank" 
@@ -223,13 +236,13 @@ export default function Home() {
             {/* Hive Power Input */}
             <div>
               <Label htmlFor="hivePower" className="text-sm font-medium text-blue-700 mb-2 block">
-                Hive Power
+                {t("hivePower")}
               </Label>
               <div className="relative">
                 <Input
                   id="hivePower"
                   type="number"
-                  placeholder="Enter your HP"
+                  placeholder={t("enterHP")}
                   value={hivePower}
                   onChange={(e) => setHivePower(e.target.value)}
                   min="0"
