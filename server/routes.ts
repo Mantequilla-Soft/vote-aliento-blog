@@ -88,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Calculate vote value using official Hive developers documentation formula
   app.post("/api/calculate-vote", async (req, res) => {
     try {
-      const { hivePower, votingPower = 10000, voteWeight = 10000 } = req.body;
+      const { hivePower, votingPower = 10000, voteWeight = 10000, customPrice } = req.body;
       
       if (typeof hivePower !== 'number' || hivePower < 0) {
         return res.status(400).json({ 

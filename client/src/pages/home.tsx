@@ -3,7 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Pencil, Check, X } from "lucide-react";
 
 interface HivePriceData {
   price: number;
@@ -24,6 +26,9 @@ interface VoteCalculationResult {
 export default function Home() {
   const [hivePower, setHivePower] = useState<string>("");
   const [calculation, setCalculation] = useState<VoteCalculationResult | null>(null);
+  const [isEditingPrice, setIsEditingPrice] = useState(false);
+  const [customPrice, setCustomPrice] = useState<string>("");
+  const [useCustomPrice, setUseCustomPrice] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -40,10 +45,20 @@ export default function Home() {
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
       try {
+        const requestBody: any = { hivePower: hp };
+        
+        // Include custom price if user has set one
+        if (useCustomPrice && customPrice) {
+          const price = parseFloat(customPrice);
+          if (!isNaN(price) && price > 0) {
+            requestBody.customPrice = price;
+          }
+        }
+        
         const response = await fetch("/api/calculate-vote", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ hivePower: hp }),
+          body: JSON.stringify(requestBody),
           signal: controller.signal,
         });
         
@@ -84,15 +99,82 @@ export default function Home() {
 
   // Calculate vote value when Hive Power changes with caching and debouncing
   const debouncedCalculate = useCallback((hp: number) => {
-    // Check if we already have this calculation cached
-    const cachedResult = queryClient.getQueryData(["/api/calculate-vote", hp]);
+    // Create cache key that includes custom price state
+    const cacheKey = useCustomPrice ? 
+      ["/api/calculate-vote", hp, "custom", customPrice] : 
+      ["/api/calculate-vote", hp];
+    
+    const cachedResult = queryClient.getQueryData(cacheKey);
     if (cachedResult) {
       setCalculation(cachedResult as VoteCalculationResult);
       return;
     }
     
     calculateMutation.mutate(hp);
-  }, [queryClient, calculateMutation]);
+  }, [queryClient, calculateMutation, useCustomPrice, customPrice]);
+
+  // Helper function to recalculate with current HP
+  const recalculateWithCurrentHP = useCallback(() => {
+    const hp = parseFloat(hivePower);
+    if (!isNaN(hp) && hp > 0) {
+      debouncedCalculate(hp);
+    }
+  }, [hivePower, debouncedCalculate]);
+
+  // Price editing handlers
+  const handleEditPrice = useCallback(() => {
+    const currentPrice = useCustomPrice ? customPrice : (priceData?.price.toString() || "");
+    setCustomPrice(currentPrice);
+    setIsEditingPrice(true);
+  }, [useCustomPrice, customPrice, priceData?.price]);
+
+  const handleSavePrice = useCallback(() => {
+    const price = parseFloat(customPrice);
+    if (isNaN(price) || price <= 0) {
+      toast({
+        title: "Invalid Price",
+        description: "Please enter a valid price greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setUseCustomPrice(true);
+    setIsEditingPrice(false);
+    
+    // Clear calculation cache to force recalculation with new price
+    queryClient.removeQueries({ queryKey: ["/api/calculate-vote"] });
+    
+    toast({
+      title: "Price Updated",
+      description: `Using custom HIVE price: $${price.toFixed(3)}`,
+    });
+    
+    // Recalculate with new price
+    recalculateWithCurrentHP();
+  }, [customPrice, toast, queryClient, recalculateWithCurrentHP]);
+
+  const handleCancelEdit = useCallback(() => {
+    setIsEditingPrice(false);
+    setCustomPrice("");
+  }, []);
+
+  const handleResetToMarket = useCallback(() => {
+    setUseCustomPrice(false);
+    setCustomPrice("");
+    setIsEditingPrice(false);
+    
+    // Clear calculation cache to force recalculation with market price
+    queryClient.removeQueries({ queryKey: ["/api/calculate-vote"] });
+    
+    toast({
+      title: "Price Reset",
+      description: "Using live market price",
+    });
+    
+    // Recalculate with market price
+    recalculateWithCurrentHP();
+  }, [toast, queryClient, recalculateWithCurrentHP]);
 
   useEffect(() => {
     const hp = parseFloat(hivePower);
@@ -165,19 +247,89 @@ export default function Home() {
             {/* Current HIVE Price */}
             <div className="bg-slate-700 border border-slate-600 rounded-lg p-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-300">Current HIVE Price</span>
-                <div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-slate-300">HIVE Price</span>
+                  {useCustomPrice && (
+                    <span className="text-xs bg-orange-600 text-white px-2 py-1 rounded">Custom</span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
                   {priceLoading ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
                   ) : priceError ? (
                     <span className="text-red-400 text-sm">Error</span>
-                  ) : priceData ? (
-                    <span className="text-lg font-semibold text-blue-400">
-                      ${priceData.price.toFixed(3)}
-                    </span>
-                  ) : null}
+                  ) : isEditingPrice ? (
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        value={customPrice}
+                        onChange={(e) => setCustomPrice(e.target.value)}
+                        placeholder="0.000"
+                        min="0"
+                        step="0.001"
+                        className="w-20 h-8 text-sm text-center bg-slate-600 border-slate-500 text-white"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSavePrice();
+                          } else if (e.key === 'Escape') {
+                            handleCancelEdit();
+                          }
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleSavePrice}
+                        className="h-8 w-8 p-0 text-green-400 hover:text-green-300 hover:bg-slate-600"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleCancelEdit}
+                        className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-slate-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg font-semibold text-blue-400">
+                        ${useCustomPrice ? parseFloat(customPrice).toFixed(3) : (priceData?.price.toFixed(3) || "0.000")}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleEditPrice}
+                        className="h-8 w-8 p-0 text-slate-400 hover:text-blue-400 hover:bg-slate-600"
+                        title="Edit price"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
+              
+              {useCustomPrice && !isEditingPrice && (
+                <div className="mt-2 pt-2 border-t border-slate-600">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">
+                      Market: ${priceData?.price.toFixed(3) || "Loading..."}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleResetToMarket}
+                      className="h-6 text-xs text-slate-400 hover:text-blue-400 hover:bg-slate-600 px-2"
+                    >
+                      Use Market Price
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Vote Value in USD */}
