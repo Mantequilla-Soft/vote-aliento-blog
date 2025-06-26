@@ -107,6 +107,11 @@ The application follows a monorepo structure with clear separation between clien
 - Matches actual Hive blockchain vote calculation methodology
 - June 25, 2025: Updated to use user-provided rshares formula for maximum accuracy
 - Switched to witness price feeds as primary price source instead of CoinGecko for authentic blockchain pricing
+- June 26, 2025: Fixed multiple critical bugs identified in bug check
+- Resolved JavaScript hoisting error with debouncedCalculate function causing React crashes
+- Enhanced server-side API error handling with proper validation for blockchain data responses
+- Fixed blinking vote value issue when using custom prices by optimizing React hook dependencies
+- Improved memory management and prevented unnecessary API calls through better caching logic
 
 ## User Preferences
 

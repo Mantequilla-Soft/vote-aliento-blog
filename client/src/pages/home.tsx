@@ -95,21 +95,21 @@ export default function Home() {
     },
   });
 
+  // Create a stable reference for the price key to prevent unnecessary recalculations
+  const priceKey = useCustomPrice ? customPrice : "market";
+  
   // Calculate vote value when Hive Power changes with caching and debouncing
   const debouncedCalculate = useCallback((hp: number) => {
-    // Create cache key that includes custom price state
-    const cacheKey = useCustomPrice ? 
-      ["/api/calculate-vote", hp, "custom", customPrice] : 
-      ["/api/calculate-vote", hp];
-    
-    const cachedResult = queryClient.getQueryData(cacheKey);
-    if (cachedResult) {
-      setCalculation(cachedResult as VoteCalculationResult);
-      return;
+    // Only trigger new calculation if we don't have a result for this exact combination
+    if (calculation && 
+        calculation.hivePower === hp && 
+        ((useCustomPrice && Math.abs(calculation.hivePrice - parseFloat(customPrice)) < 0.001) ||
+         (!useCustomPrice && priceData && Math.abs(calculation.hivePrice - priceData.price) < 0.001))) {
+      return; // Skip calculation if we already have the right result
     }
     
     calculateMutation.mutate(hp);
-  }, [queryClient, calculateMutation, useCustomPrice, customPrice]);
+  }, [calculation, useCustomPrice, customPrice, priceData, calculateMutation.mutate]);
 
   // Helper function to recalculate with current HP
   const recalculateWithCurrentHP = useCallback(() => {
