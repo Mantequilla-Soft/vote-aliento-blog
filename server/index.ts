@@ -58,7 +58,7 @@ app.use((req, res, next) => {
 
   // Serve the app on port 3005 (port 5000 conflicts with macOS AirPlay)
   // this serves both the API and the client.
-  const port = 3005;
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 3005;
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });
