@@ -1,133 +1,251 @@
 # Hive Upvote Calculator
 
-## Overview
+A full-stack web application that calculates upvote values for Hive blockchain accounts based on their Hive Power. The app fetches real-time HIVE price data and blockchain parameters to provide accurate voting power estimations.
 
-This is a full-stack web application that calculates upvote values for Hive blockchain accounts based on their Hive Power. The app fetches real-time HIVE price data and provides instant calculations for voting power estimation. Built with a modern tech stack focusing on performance and user experience. Created by the Aliento Project (aliento.blog).
+Created by the [Aliento Project](https://aliento.blog) 🚀
 
-## System Architecture
+## ✨ Features
 
-The application follows a monorepo structure with clear separation between client and server:
+- **Real-time Vote Calculations** - Uses authentic Hive blockchain rshares formula
+- **Live HIVE Price** - Fetches witness price feeds from HAF Explorer API
+- **Bilingual Support** - English/Spanish translations with toggle
+- **Dark Mode** - Beautiful dark theme with persistent preference
+- **Responsive Design** - Clean, minimal interface optimized for all devices
+- **Type-Safe** - Full TypeScript coverage across client and server
 
-**Frontend (React/TypeScript)**
-- Built with Vite for fast development and optimized builds
-- Uses shadcn/ui component library with Radix UI primitives
-- Tailwind CSS for styling with custom Hive brand colors
-- React Query (TanStack Query) for state management and API caching
-- Wouter for lightweight client-side routing
+## 🚀 Quick Start
 
-**Backend (Node.js/Express)**
-- Express.js server with TypeScript support
-- RESTful API endpoints for HIVE price and vote calculations
-- Integration with HAF Explorer API for real-time price data
+### Prerequisites
+
+- Node.js 18+ and npm
+- PostgreSQL database (local or hosted)
+- Basic knowledge of React and Express
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd vote-aliento-blog
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env and add your DATABASE_URL
+
+# Push database schema
+npm run db:push
+
+# Start development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5000`
+
+## 📋 Available Commands
+
+```bash
+# Development
+npm run dev          # Start dev server with hot reload on port 5000
+
+# Production
+npm run build        # Build client and server for production
+npm start            # Run production server
+
+# Database
+npm run db:push      # Push Drizzle schema changes to PostgreSQL
+
+# Type Checking
+npm run check        # Run TypeScript compiler validation
+```
+
+## 🔧 Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+DATABASE_URL=postgresql://user:password@host:port/database
+```
+
+**Required:**
+- `DATABASE_URL` - PostgreSQL connection string for Drizzle ORM
+
+## 📁 Project Structure
+
+```
+vote-aliento-blog/
+├── client/              # React frontend
+│   ├── src/
+│   │   ├── components/  # React components (shadcn/ui)
+│   │   ├── hooks/       # Custom hooks (useTranslation, etc.)
+│   │   ├── lib/         # Utilities and query client
+│   │   └── pages/       # Route components
+│   └── index.html       # HTML entry with meta tags
+├── server/              # Express backend
+│   ├── index.ts         # Express app setup
+│   ├── routes.ts        # API endpoints
+│   ├── storage.ts       # Database configuration
+│   └── vite.ts          # Vite integration
+├── shared/              # Shared TypeScript code
+│   └── schema.ts        # Drizzle ORM schemas + Zod validation
+└── dist/                # Production build output
+```
+
+## 🏛️ Architecture Overview
+
+### Technology Stack
+
+**Frontend:**
+- React 18 with TypeScript
+- Vite for build tooling and dev server
+- shadcn/ui components built on Radix UI primitives
+- Tailwind CSS with dark mode and custom theming
+- React Query (TanStack Query) for server state (5-min cache)
+- Wouter for client-side routing
+- React Hook Form with Zod validation
+
+**Backend:**
+- Express.js with TypeScript
+- RESTful API architecture
+- Integration with Hive blockchain APIs and HAF Explorer
 - Session-based architecture with memory storage
 
-**Database Layer**
-- Drizzle ORM configured for PostgreSQL
-- Schema definitions for users and HIVE price tracking
+**Database:**
+- Drizzle ORM with PostgreSQL adapter
+- @neondatabase/serverless for connectivity
+- Schema for users and HIVE price tracking
 - Zod validation for type-safe data handling
 
-## Key Components
+### API Endpoints
 
-### Frontend Architecture
-- **Component Structure**: Uses shadcn/ui design system with consistent styling
-- **State Management**: React Query handles server state with 5-minute cache intervals
-- **Styling**: Tailwind CSS with CSS variables for theming and dark mode support
-- **Form Handling**: React Hook Form with Zod resolvers for validation
+#### `GET /api/hive-price`
+Fetches current HIVE price in USD:
+1. **Primary**: HAF Explorer witness price feeds (`https://api.syncad.com/hafbe-api/witnesses?limit=1`)
+2. **Fallback**: CoinGecko API
+3. **Last Resort**: Hardcoded fallback ($0.198)
 
-### Backend Architecture
-- **API Layer**: Express routes with middleware for logging and error handling
-- **External Integration**: HAF Explorer API client for HIVE price feeds
-- **Data Validation**: Zod schemas for request/response validation
-- **Error Handling**: Centralized error middleware with proper HTTP status codes
+#### `POST /api/calculate-vote`
+Calculates vote value using real blockchain parameters:
+- Fetches from `condenser_api.get_dynamic_global_properties` (vesting fund/shares)
+- Fetches from `condenser_api.get_reward_fund` (reward balance, recent claims)
+- Implements official Hive rshares formula:
+  ```
+  totalVests = (hivePower * totalVestingShares) / totalVestingFundHive
+  rshares = (votePowerFactor * totalVests * 1e6 * 10000/50) / 10000
+  voteValueHive = (rshares / recentClaims) * rewardBalance
+  voteValueUsd = voteValueHive * hivePrice
+  ```
 
-### Data Flow
-1. Client requests HIVE price from `/api/hive-price`
-2. Server fetches from HAF Explorer API with fallback to cached price
-3. Vote calculations performed server-side using HIVE Power input
-4. Results cached client-side for 5 minutes to reduce API calls
+### Key Features
 
-## External Dependencies
+**Translation System:**
+- English/Spanish support via `client/src/lib/translations.ts`
+- Custom `useTranslation` hook
+- Globe icon toggle in header
 
-**Core Dependencies:**
-- React 18 with TypeScript for type safety
-- Express.js for server framework
-- Drizzle ORM with PostgreSQL adapter
-- @neondatabase/serverless for database connectivity
+**Theme System:**
+- Dark/light theme with CSS variables
+- Dark: Slate palette (#063248, #0A4F70, #046088)
+- Light: Blue palette
+- Persists in localStorage (`hive-calculator-theme`)
 
-**UI Libraries:**
-- @radix-ui/* components for accessible primitives
-- Tailwind CSS for utility-first styling
-- Lucide React for consistent iconography
+**Path Aliases:**
+- `@/*` → `./client/src/*`
+- `@shared/*` → `./shared/*`
+- `@assets/*` → `./attached_assets/*`
 
-**Development Tools:**
-- Vite for build tooling and dev server
-- ESBuild for server bundling
-- TSX for TypeScript execution
+## 📦 Deployment
 
-## Deployment Strategy
+### Development
+- Runs on port **5000** (both API and client)
+- Vite dev server with HMR
+- Express serves API routes
 
-**Development:**
-- Vite dev server on port 5000 with HMR
-- Express server serves API routes and static files
-- PostgreSQL database provisioned via Replit
+### Production Build Process
 
-**Production:**
-- Vite builds optimized static assets to `dist/public`
-- ESBuild bundles server code to `dist/index.js`
-- Autoscale deployment target with port 80 external mapping
-- Environment variables for database connection
+1. **Client Build**: Vite optimizes static assets to `dist/public`
+2. **Server Build**: ESBuild bundles server to `dist/index.js`
+3. **Run**: Server serves static files from `dist/public` on port 5000
 
-**Build Process:**
-1. `npm run build` - Builds client and server bundles
-2. Client assets served from `/dist/public`
-3. Server runs from bundled `/dist/index.js`
+```bash
+npm run build
+npm start
+```
 
-## Recent Changes
-- June 23, 2025: Built complete Hive vote value calculator with real-time price feeds
-- Implemented accurate vote calculation using actual blockchain parameters
-- Integrated HAF Explorer API for authentic witness price feeds ($0.201 current price)
-- Created responsive Hive-branded interface with example values and detailed explanations
-- Fixed critical calculation bug that was returning zero values
-- Resolved DOM nesting warnings, memory leaks, and server error handling issues
-- Simplified interface to show only essential elements: HP input, HIVE price, and USD vote value
-- Applied dark blue midnight theme with slate colors for modern appearance
-- Added Aliento Project branding with logo and attribution in header
-- **OFFICIAL HIVE DEVELOPERS FORMULA**: Implemented authentic calculation from developers.hive.io
-- Formula: final_vest = total_vests × 1e6; power = (voting_power × weight / 10000) / 50; rshares = power × final_vest / 10000; estimate = rshares / recent_claims × reward_balance × hbd_median_price
-- Corrected vote values with proper scaling: 1000 HP = ~$0.01, 10000 HP = ~$0.10, 100000 HP = ~$1.00
-- Uses authentic APIs: condenser_api.get_reward_fund, get_feed_history, get_dynamic_global_properties
-- Real blockchain data: reward balance (~999K HIVE), recent claims (~708B), HBD median price (~0.192)
-- Fixed memory leaks in React components with proper useCallback implementation
-- Improved API error handling and removed unrealistic fallback values
-- **RSHARES-BASED VOTE FORMULA**: Implemented authentic rshares calculation using exact blockchain mechanics
-- Uses accurate formula: voteValueHIVE = (rshares / recentClaims) * rewardBalance
-- RShares calculated as: rshares = (votePowerFactor * totalVests * 1e6 * 10000/50) / 10000
-- Real network values: 1K HP ≈ $0.009, 10K HP ≈ $0.094, 100K HP ≈ $0.937
-- Fetches live blockchain data: reward balance, recent claims, vesting fund statistics
-- Matches actual Hive blockchain vote calculation methodology
-- June 25, 2025: Updated to use user-provided rshares formula for maximum accuracy
-- Switched to witness price feeds as primary price source instead of CoinGecko for authentic blockchain pricing
-- June 26, 2025: Fixed multiple critical bugs identified in bug check
-- Resolved JavaScript hoisting error with debouncedCalculate function causing React crashes
-- Enhanced server-side API error handling with proper validation for blockchain data responses
-- Fixed blinking vote value issue when using custom prices by optimizing React hook dependencies
-- Improved memory management and prevented unnecessary API calls through better caching logic
-- Updated visual design with beautiful blue color palette and Inter font inspired by modern UI designs
-- Implemented English/Spanish translation system with toggle button in header
-- Moved attribution link from header to bottom of interface for cleaner design
-- Replaced translation toggle icon from gear/settings to Globe icon for better user intuition
-- Added dark theme support with theme toggle button (Sun/Moon icon) in header
-- Dark theme uses slate color palette with improved contrast over original blue scheme
-- Theme preference persists in localStorage with "hive-calculator-theme" key
-- Dark theme implementation completed with far-right color palette (#063248, #0A4F70, #046088)
-- Fixed text visibility issues: subtitle and vote value text now white in dark mode
-- Improved toggle button positioning to prevent title overlap with smaller 28px buttons
-- Enhanced toggle button visibility with white text color for better contrast
-- Added custom favicon with Hive-themed circular logo featuring blue and purple design
-- Enhanced HTML with proper meta tags, title, and Open Graph tags for social sharing
+### Port Configuration
 
-## User Preferences
+⚠️ The application **always** runs on port **5000** in both development and production.
 
-Preferred communication style: Simple, everyday language.
-UI Design: Dark blue midnight theme with minimal, clean interface showing only essential elements.
-Branding: Include Aliento Project logo and attribution with link to aliento.blog in the application header.
+## 🧪 Troubleshooting
+
+### Common Issues
+
+**Database connection errors:**
+- Verify `DATABASE_URL` is set correctly in `.env`
+- Ensure PostgreSQL is running and accessible
+- Run `npm run db:push` to sync schema
+
+**Port 5000 already in use:**
+```bash
+# Find and kill the process using port 5000
+lsof -ti:5000 | xargs kill -9
+```
+
+**Type errors:**
+```bash
+# Run type checking to identify issues
+npm run check
+```
+
+**Vote calculations return $0:**
+- Check Hive blockchain API availability (api.hive.blog)
+- Verify network connectivity
+- Check browser console for API errors
+
+## 📝 Development Notes
+
+### Vote Calculation Formula
+
+The app uses the **official Hive blockchain rshares formula** for accurate vote value calculations:
+- Fetches real-time blockchain parameters (never uses hardcoded values)
+- Validates all API responses before parsing
+- Expected values: 1K HP ≈ $0.009, 10K HP ≈ $0.094, 100K HP ≈ $0.937
+
+### API Integration Best Practices
+
+- All external API calls have timeout protection (5-10 seconds)
+- Fallback values for blockchain API failures
+- AbortController for fetch timeout management
+- Detailed debug logging in development mode
+
+### React Best Practices
+
+- Use `useCallback` to prevent memory leaks
+- React Query cache intervals: 5 minutes for price data
+- Optimize hook dependencies to avoid unnecessary re-renders
+- Proper cleanup in useEffect hooks
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🙏 Acknowledgments
+
+- Built by the [Aliento Project](https://aliento.blog)
+- Powered by the Hive blockchain
+- UI components from [shadcn/ui](https://ui.shadcn.com)
+
+---
+
+**Made with ❤️ for the Hive community**
