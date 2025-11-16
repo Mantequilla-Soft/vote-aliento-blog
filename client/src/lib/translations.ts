@@ -21,7 +21,14 @@ export const translations = {
     usingMarketPrice: "Using live market price",
     language: "Language",
     officialSite: "Official Website",
-    witnessExplorer: "Witness Block Explorer"
+    witnessExplorer: "Witness Block Explorer",
+    voteWitness: "Vote for Aliento as Witness",
+    githubRepo: "View on GitHub",
+    keychainNotInstalled: "Keychain Not Installed",
+    keychainRequired: "Please install Hive Keychain to vote for witnesses",
+    votingSuccess: "Vote Successful",
+    votingSuccessDesc: "Thank you for voting for Aliento as witness!",
+    votingFailed: "Voting Failed"
   },
   es: {
     title: "Calculadora de Votos de Hive",
@@ -45,7 +52,14 @@ export const translations = {
     usingMarketPrice: "Usando precio de mercado en vivo",
     language: "Idioma",
     officialSite: "Sitio Oficial",
-    witnessExplorer: "Explorador de Testigos"
+    witnessExplorer: "Explorador de Testigos",
+    voteWitness: "Votar por Aliento como Testigo",
+    githubRepo: "Ver en GitHub",
+    keychainNotInstalled: "Keychain No Instalado",
+    keychainRequired: "Por favor instala Hive Keychain para votar por testigos",
+    votingSuccess: "Voto Exitoso",
+    votingSuccessDesc: "¡Gracias por votar por Aliento como testigo!",
+    votingFailed: "Voto Fallido"
   }
 };
 

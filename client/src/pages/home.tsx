@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useTheme } from "@/components/theme-provider";
-import { Pencil, Check, X, Globe, Sun, Moon } from "lucide-react";
+import { Pencil, Check, X, Globe, Sun, Moon, ThumbsUp, Github } from "lucide-react";
+import { KeychainSDK } from "keychain-sdk";
 
 import logoalientosinfondo from "@assets/logoalientosinfondo.png";
 
@@ -37,6 +38,7 @@ export default function Home() {
   const queryClient = useQueryClient();
   const { t, language, toggleLanguage } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const [isVoting, setIsVoting] = useState(false);
 
   // Fetch current HIVE price
   const { data: priceData, isLoading: priceLoading, error: priceError } = useQuery<HivePriceData>({
@@ -195,6 +197,63 @@ export default function Home() {
     
     return () => clearTimeout(timeoutId);
   }, [hivePower, debouncedCalculate]);
+
+  // Witness voting handler
+  const handleVoteWitness = async () => {
+    setIsVoting(true);
+    try {
+      const keychain = new KeychainSDK(window);
+      
+      // Check if Keychain is installed
+      const isInstalled = await keychain.isKeychainInstalled();
+      if (!isInstalled) {
+        toast({
+          title: t("keychainNotInstalled"),
+          description: t("keychainRequired"),
+          variant: "destructive",
+        });
+        setIsVoting(false);
+        return;
+      }
+      
+      // Prompt user for their Hive username
+      const username = prompt(language === 'es' ? 'Ingresa tu nombre de usuario de Hive:' : 'Enter your Hive username:');
+      
+      if (!username || username.trim() === '') {
+        setIsVoting(false);
+        return;
+      }
+      
+      // Request witness vote for Aliento
+      const result = await keychain.witnessVote({
+        username: username.trim(),
+        witness: 'aliento',
+        vote: true
+      });
+      
+      if (result.success) {
+        toast({
+          title: t("votingSuccess"),
+          description: t("votingSuccessDesc"),
+        });
+      } else {
+        toast({
+          title: t("votingFailed"),
+          description: result.message || "Unknown error occurred",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Witness voting error:", error);
+      toast({
+        title: t("votingFailed"),
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsVoting(false);
+    }
+  };
 
 
 
@@ -364,25 +423,56 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Attribution Link */}
-            <div className="text-center">
-              <a 
-                href="https://aliento.blog" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-500 dark:text-blue-700 hover:text-blue-700 dark:hover:text-blue-800 underline transition-colors font-medium text-xs"
-              >
-                 {t("officialSite")}
-              </a>
-              <br />
-              <a 
-                href="https://info.aliento.blog" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-500 dark:text-blue-700 hover:text-blue-700 dark:hover:text-blue-800 underline transition-colors font-medium text-xs"
-              >
-                {t("witnessExplorer")}
-              </a>
+            {/* Attribution Links */}
+            <div className="text-center space-y-2">
+              <div>
+                <a 
+                  href="https://aliento.blog" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-500 dark:text-blue-700 hover:text-blue-700 dark:hover:text-blue-800 underline transition-colors font-medium text-xs"
+                >
+                   {t("officialSite")}
+                </a>
+                {" • "}
+                <a 
+                  href="https://info.aliento.blog" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-500 dark:text-blue-700 hover:text-blue-700 dark:hover:text-blue-800 underline transition-colors font-medium text-xs"
+                >
+                  {t("witnessExplorer")}
+                </a>
+              </div>
+              
+              {/* Witness Vote and GitHub Links */}
+              <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+                <Button
+                  onClick={handleVoteWitness}
+                  disabled={isVoting}
+                  size="sm"
+                  variant="outline"
+                  className="text-xs bg-blue-600/90 hover:bg-blue-600 text-white border-blue-700/50 hover:border-blue-600 dark:bg-[#0A4F70]/80 dark:hover:bg-[#046088] dark:border-[#046088]/50 dark:hover:border-[#046088] transition-all shadow-sm hover:shadow-md"
+                >
+                  <ThumbsUp className="h-3.5 w-3.5 mr-1.5" />
+                  {isVoting ? t("loading") : t("voteWitness")}
+                </Button>
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="text-xs border-blue-700/30 text-blue-200 hover:text-white hover:bg-blue-700/30 dark:border-[#0A4F70]/50 dark:text-blue-300 dark:hover:text-white dark:hover:bg-[#0A4F70]/40 dark:hover:border-[#046088]/50 transition-all"
+                >
+                  <a
+                    href="https://github.com/Mantequilla-Soft/vote-aliento-blog"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Github className="h-3.5 w-3.5 mr-1.5" />
+                    {t("githubRepo")}
+                  </a>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

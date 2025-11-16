@@ -18,7 +18,7 @@ function Router() {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="hive-calculator-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="hive-calculator-theme">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
